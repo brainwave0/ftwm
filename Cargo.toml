@@ -1,0 +1,11 @@
+[package]
+name = "ftwm"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+face_detect = { path = "/home/ian/Sync/projects/face_detect" }
+opencv = "0.65.0"
+xcb = "1.1.1"
