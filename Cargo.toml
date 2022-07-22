@@ -9,3 +9,5 @@ edition = "2021"
 face_detect = { path = "/home/ian/Sync/projects/face_detect" }
 opencv = "0.65.0"
 xcb = "1.1.1"
+ndarray = "0.15.4"
+num-traits = "0.2.15"
