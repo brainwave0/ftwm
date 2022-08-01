@@ -2,3 +2,6 @@
 rust
 .tox
 *.egg-info
+tcg
+.coverage
+__pycache__
