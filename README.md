@@ -1,3 +1,3 @@
 # FTWM
 
-An oversized desktop that you can pan by moving your head, written in Rust. It is not yet usable, but I am actively developing it.
+An experimental window manager with which you can pan a virtual desktop by moving your head.
