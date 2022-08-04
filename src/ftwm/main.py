@@ -1,7 +1,7 @@
 from operator import add
 from typing import TypeVar, Iterable
 from xcffib import Connection
-from xcffib.xproto import ConfigWindow
+from xcffib.xproto import ConfigWindow, CW, EventMask
 T = TypeVar('T')
 
 
@@ -33,3 +33,9 @@ def pan(windows: Iterable[Window], delta: tuple[int, int], scale: float = 1) -> 
     for window in windows:
         window.position = (
             int(window.virtual_position[0] + delta[0] * scale), int(window.virtual_position[1] + delta[1] * scale))
+
+
+def register_wm(connection: Connection) -> None:
+    root_id = connection.get_setup().roots[0].root
+    connection.core.ChangeWindowAttribtues(root_id, CW.EventMask, [
+                                           EventMask.PropertyChange, EventMask.StructureNotify, EventMask.SubstructureNotify, EventMask.SubstructureRedirect])

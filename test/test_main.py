@@ -1,6 +1,6 @@
 from ftwm.main import *
 from unittest.mock import Mock
-from xcffib.xproto import ConfigWindow
+from xcffib.xproto import ConfigWindow, EventMask, CW
 
 
 def test_pan():
@@ -36,3 +36,13 @@ class TestWindow:
         window.position = (1, 1)
         connection.core.ConfigureWindow.assert_called_once_with(
             1, ConfigWindow.X | ConfigWindow.Y, [1, 1])
+
+
+def test_register_wm():
+    connection = Mock()
+    screen = Mock()
+    screen.root = 123
+    connection.get_setup.return_value.roots = [screen]
+    register_wm(connection)
+    connection.core.ChangeWindowAttribtues.assert_called_once_with(123, CW.EventMask, [
+                                                                   EventMask.PropertyChange, EventMask.StructureNotify, EventMask.SubstructureNotify, EventMask.SubstructureRedirect])
