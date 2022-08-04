@@ -1,12 +1,26 @@
 from operator import add
 from typing import TypeVar, Iterable
+from xcffib import Connection
+from xcffib.xproto import ConfigWindow
 T = TypeVar('T')
 
 
 class Window:
-    def __init__(self, virtual_position: tuple[int, int] = (0, 0)):
+    def __init__(self, connection: Connection, id: int, virtual_position: tuple[int, int] = (0, 0)):
         self.virtual_position = virtual_position
-        self.position = (0, 0)
+        self._position = (0, 0)
+        self.connection = connection
+        self.id = id
+
+    @property
+    def position(self) -> tuple[int, int]:
+        return self._position
+
+    @position.setter
+    def position(self, other: tuple[int, int]) -> None:
+        self.connection.core.ConfigureWindow(
+            self.id, ConfigWindow.X | ConfigWindow.Y, list(other))
+        self._position = other
 
 
 def pan(windows: Iterable[Window], delta: tuple[int, int], scale: float = 1) -> None:
