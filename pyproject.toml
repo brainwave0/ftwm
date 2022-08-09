@@ -7,3 +7,9 @@ pythonpath = [
   "src"
 ]
 
+[tool.mypy]
+strict = true
+install_types = true
+non_interactive = true
+show_error_codes = true
+disable_error_code = ["no-untyped-call", "import", "no-any-return"]
