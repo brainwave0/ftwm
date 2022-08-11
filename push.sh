@@ -4,7 +4,7 @@ set -e
 commit_message=$1
 
 autopep8 --in-place --recursive .
-mypy --strict src
+mypy src/
 if grep -rP '# (failed|passed)' test/; then
     echo Finish testing first.
     exit 1

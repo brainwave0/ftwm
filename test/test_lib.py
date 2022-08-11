@@ -1,5 +1,6 @@
-from ftwm.lib import *
-from unittest.mock import Mock
+from ftwm.lib import pan, register_wm, face_delta, handle_event
+from ftwm.window import Window
+from unittest.mock import Mock, patch
 from xcffib.xproto import ConfigWindow, EventMask, CW
 import cv2
 import mediapipe
@@ -26,29 +27,14 @@ def test_pan():
     assert windows[0].position == (3, -1)
 
 
-class TestWindow:
-    def test_set_position(self):
-        connection = Mock()
-        window = Window(connection, 1)
-        window.position = (-3, -2)
-        connection.core.ConfigureWindow.assert_called_once_with(
-            1, ConfigWindow.X | ConfigWindow.Y, [-3, -2])
-
-        connection = Mock()
-        window = Window(connection, 1)
-        window.position = (1, 1)
-        connection.core.ConfigureWindow.assert_called_once_with(
-            1, ConfigWindow.X | ConfigWindow.Y, [1, 1])
-
-
 def test_register_wm():
     connection = Mock()
     screen = Mock()
     screen.root = 123
     connection.get_setup.return_value.roots = [screen]
     register_wm(connection)
-    connection.core.ChangeWindowAttribtues.assert_called_once_with(123, CW.EventMask, [
-                                                                   EventMask.PropertyChange, EventMask.StructureNotify, EventMask.SubstructureNotify, EventMask.SubstructureRedirect])
+    connection.core.ChangeWindowAttributes.assert_called_once_with(123, CW.EventMask, [
+                                                                   EventMask.PropertyChange | EventMask.StructureNotify | EventMask.SubstructureNotify | EventMask.SubstructureRedirect])
 
 
 def test_face_delta():
@@ -78,3 +64,14 @@ def test_face_delta():
         # result is within 50 pixels of the nose position
         assert abs(face_delta_[0] -
                    144) <= 50 and abs(face_delta_[1] - 2) <= 50
+
+
+def test_handle_events():
+    connection = Mock()
+    windows = []
+    with patch('ftwm.lib.handle_map_request') as handler, patch('ftwm.lib.MapRequestEvent', new=Mock) as Event:
+        event = Event()
+        connection.poll_for_event.return_value = event
+        handle_event(connection, windows)
+        connection.poll_for_event.assert_called_once()
+        handler.assert_called_once_with(connection, event, windows)

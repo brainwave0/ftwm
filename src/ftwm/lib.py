@@ -1,27 +1,11 @@
+from .window import Window
+from .event_handlers import handle_map_request
 import cv2
 from xcffib import Connection
 from typing import Iterable, Optional
-from xcffib.xproto import CW, EventMask, ConfigWindow
+from xcffib.xproto import CW, EventMask, ConfigWindow, MapRequestEvent
 import mediapipe
 face_detection = mediapipe.solutions.face_detection
-
-
-class Window:
-    def __init__(self, connection: Connection, id: int, virtual_position: tuple[int, int] = (0, 0)):
-        self.virtual_position = virtual_position
-        self._position = (0, 0)
-        self.connection = connection
-        self.id = id
-
-    @property
-    def position(self) -> tuple[int, int]:
-        return self._position
-
-    @position.setter
-    def position(self, other: tuple[int, int]) -> None:
-        self.connection.core.ConfigureWindow(
-            self.id, ConfigWindow.X | ConfigWindow.Y, list(other))
-        self._position = other
 
 
 def pan(windows: Iterable[Window], delta: tuple[int, int], scale: float = 1) -> None:
@@ -38,8 +22,8 @@ def pan(windows: Iterable[Window], delta: tuple[int, int], scale: float = 1) -> 
 
 def register_wm(connection: Connection) -> None:
     root_id = connection.get_setup().roots[0].root
-    connection.core.ChangeWindowAttribtues(root_id, CW.EventMask, [
-                                           EventMask.PropertyChange, EventMask.StructureNotify, EventMask.SubstructureNotify, EventMask.SubstructureRedirect])
+    connection.core.ChangeWindowAttributes(root_id, CW.EventMask, [
+                                           EventMask.PropertyChange | EventMask.StructureNotify | EventMask.SubstructureNotify | EventMask.SubstructureRedirect])
 
 
 def relative_face_area(detection: mediapipe.framework.formats.detection_pb2.Detection) -> float:
@@ -63,3 +47,9 @@ def face_delta(face_detector: mediapipe.solutions.face_detection.FaceDetection, 
         return (point.x * image.shape[1] - center[0], point.y * image.shape[0] - center[1])
     else:
         return None
+
+
+def handle_event(connection: Connection, windows: list[Window]) -> None:
+    event = connection.poll_for_event()
+    if isinstance(event, MapRequestEvent):
+        handle_map_request(connection, event, windows)
