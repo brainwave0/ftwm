@@ -31,7 +31,7 @@ def relative_face_area(detection: mediapipe.framework.formats.detection_pb2.Dete
     return box.width * box.height
 
 
-def face_delta(face_detector: mediapipe.solutions.face_detection.FaceDetection, image: cv2.Mat) -> Optional[tuple[float, float]]:
+def face_delta(face_detector: mediapipe.solutions.face_detection.FaceDetection, image: cv2.Mat) -> Optional[tuple[int, int]]:
     """
     Gets the nose position relative to the center of the camera frame.
     """
@@ -44,7 +44,7 @@ def face_delta(face_detector: mediapipe.solutions.face_detection.FaceDetection, 
             detections, key=lambda x: relative_face_area(x))
         point = face_detection.get_key_point(
             closest, face_detection.FaceKeyPoint.NOSE_TIP)
-        return (point.x * image.shape[1] - center[0], point.y * image.shape[0] - center[1])
+        return (int(point.x * image.shape[1] - center[0]), int(point.y * image.shape[0] - center[1]))
     else:
         return None
 
