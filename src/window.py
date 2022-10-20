@@ -1,13 +1,17 @@
 from xcffib import Connection
 from xcffib.xproto import ConfigWindow
+from .rectangle import Rectangle
 
 
 class Window:
-    def __init__(self, connection: Connection, id: int, virtual_position: tuple[int, int] = (0, 0)):
-        self.virtual_position = virtual_position
+    def __init__(self, connection: Connection, id: int, virtual_position: tuple[int, int]=(0, 0), size=None):
         self._position = (0, 0)
         self.connection = connection
         self.id = id
+        self.virtual = Rectangle()
+        self.virtual.position = virtual_position
+        if size:
+            self.virtual.size = size
 
     @property
     def position(self) -> tuple[int, int]:
