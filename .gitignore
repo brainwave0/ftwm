@@ -6,3 +6,4 @@ tcg
 .coverage
 __pycache__
 stats
+.idea

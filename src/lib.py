@@ -1,10 +1,11 @@
 from .window import Window
-from .event_handlers import handle_map_request
+from .event_handlers import handle_map_request, handle_screen_change_notify
 import cv2
 from xcffib import Connection
 from typing import Iterable, Optional
 from xcffib.xproto import CW, EventMask, ConfigWindow, MapRequestEvent
 import mediapipe
+from xcffib.randr import ScreenChangeNotifyEvent
 face_detection = mediapipe.solutions.face_detection
 
 
@@ -17,7 +18,7 @@ def pan(windows: Iterable[Window], delta: tuple[int, int], scale: float = 1) -> 
     """
     for window in windows:
         window.position = (
-            int(window.virtual_position[0] + delta[0] * scale), int(window.virtual_position[1] + delta[1] * scale))
+            int(window.virtual.position[0] + delta[0] * scale), int(window.virtual.position[1] + delta[1] * scale))
 
 
 def register_wm(connection: Connection) -> None:
@@ -49,7 +50,9 @@ def face_delta(face_detector: mediapipe.solutions.face_detection.FaceDetection, 
         return None
 
 
-def handle_event(connection: Connection, windows: list[Window]) -> None:
+def handle_event(connection: Connection, windows: list[Window], screen) -> None:
     event = connection.poll_for_event()
     if isinstance(event, MapRequestEvent):
-        handle_map_request(connection, event, windows)
+        handle_map_request(connection, event, windows, screen)
+    if isinstance(event, ScreenChangeNotifyEvent):
+        handle_screen_change_notify(event, windows, screen)

@@ -9,7 +9,7 @@ class KalmanFilter:
 
     def __init__(self) -> None:
         self.cv2_kalman_filter = cv2.KalmanFilter(6, 2, type=6)
-        scale = 2
+        scale = 3
         dt = 0.4221
         err_stdev = 1.058635831 * scale
         acc = 1 * 2
