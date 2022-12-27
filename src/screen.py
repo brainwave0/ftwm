@@ -1,10 +1,9 @@
-from .rectangle import Rectangle
 from .dynamic_grid import DynamicGrid
+from .rectangle import Rectangle
 
 
-class Screen(Rectangle):
-    def __init__(self, width, height, **kwargs):
-        super().__init__(**kwargs)
+class Screen:
+    def __init__(self, width: float, height: float):
+        assert width >= 0 and height >= 0
         self.grid = DynamicGrid()
-        self.width = width
-        self.height = height
+        self.geometry = Rectangle(0, 0, width, height)

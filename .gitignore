@@ -7,3 +7,4 @@ tcg
 __pycache__
 stats
 .idea
+ignore

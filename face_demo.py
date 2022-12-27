@@ -1,5 +1,8 @@
+from functools import reduce
+
 import cv2
 import mediapipe as mp
+
 mp_face_detection = mp.solutions.face_detection
 mp_drawing = mp.solutions.drawing_utils
 
@@ -46,10 +49,19 @@ with mp_face_detection.FaceDetection(
         image.flags.writeable = True
         image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
         if results.detections:
-            for detection in results.detections:
-                mp_drawing.draw_detection(image, detection)
+            detection = results.detections[0]
+            points = [mp_face_detection.get_key_point(detection, i) for i in mp_face_detection.FaceKeyPoint]
+            points = [(point.x * image.shape[1], point.y * image.shape[0]) for point in points]
+            box = detection.location_data.relative_bounding_box
+            box_center = (box.xmin * image.shape[1] + box.width / 2, box.ymin * image.shape[0] + box.height / 2)
+            points.append(box_center)
+            point = reduce(lambda a, b: (a[0] + b[0], a[1] + b[1]), points)
+            point = (int(point[0] / len(points)), int(point[1] / len(points)))
+            # for detection in results.detections:
+            cv2.drawMarker(image, point, (255, 0, 0))
+            # cv2.drawMarker(image, (detection.relative_bounding_box), (255, 0, 0))
         # Flip the image horizontally for a selfie-view display.
         cv2.imshow('MediaPipe Face Detection', cv2.flip(image, 1))
-        if cv2.waitKey(int(1000/30*2)) & 0xFF == 27:
+        if cv2.waitKey(int(1000 / 30 * 2)) & 0xFF == 27:
             break
 cap.release()
