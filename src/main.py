@@ -12,7 +12,7 @@ from .misc import register_wm, pan
 from .screen import Screen
 from .window import Window
 from .face_tracking import face_delta
-from .handle_event import handle_event
+from .event import handle_event
 
 
 async def main() -> None:
