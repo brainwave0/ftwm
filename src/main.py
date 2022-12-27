@@ -1,4 +1,5 @@
 import asyncio
+from argparse import ArgumentParser
 from os import environ
 
 import cv2
@@ -16,10 +17,14 @@ from .event import handle_event
 
 
 async def main() -> None:
+    argument_parser = ArgumentParser()
+    argument_parser.add_argument("--camera", type=int, default=0)
+    arguments = argument_parser.parse_args()
+
     hook_modules.init()
     connection = connect(environ['DISPLAY'])
     register_wm(connection)
-    camera = cv2.VideoCapture(0)
+    camera = cv2.VideoCapture(arguments.camera)
     camera.set(cv2.CAP_PROP_FPS, 60)
     windows: list[Window] = []
     scale = 8
