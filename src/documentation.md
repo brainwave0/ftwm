@@ -46,3 +46,7 @@ The window is simply removed from the list.
 ## Button Press
 
 Handles click-to-focus.
+
+# COMMAND LINE INTERFACE
+
+The application can be controlled from the command line. It is just a shell script that uses the DBus interface.
