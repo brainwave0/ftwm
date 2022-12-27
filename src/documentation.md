@@ -42,3 +42,7 @@ When the screen resolution changes, the windows are rearranged.
 ## Destroy Notify
 
 The window is simply removed from the list.
+
+## Button Press
+
+Handles click-to-focus.
