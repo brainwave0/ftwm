@@ -1,6 +1,7 @@
 import asyncio
 from argparse import ArgumentParser
 from os import environ
+from sys import stderr
 
 import cv2
 from mediapipe.python.solutions.face_detection import FaceDetection
@@ -29,8 +30,8 @@ async def main() -> None:
     windows: list[Window] = []
     scale = 8
     kalman_filter = KalmanFilter(scale)
-    jitter_filter = JitterFilter(threshold=(8 - 4 + 2 - 1 - 2 + 1 + 2 + 4 - 2 + 1 - 1 + 1) * scale,
-                                 period=(8 - 4 + 2 - 1))
+    jitter_filter = JitterFilter(threshold=9 * scale,
+                                 period=5)
     root = connection.get_setup().roots[0]
     screen = Screen(root.width_in_pixels, root.height_in_pixels)
     await hooks.main_initializing.fire_async(screen, windows)
