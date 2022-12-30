@@ -1,9 +1,9 @@
 from functools import reduce
+from typing import Optional
 
+import cv2
 import mediapipe
 from mediapipe.framework.formats.detection_pb2 import Detection
-import cv2
-from typing import Optional
 
 face_detection = mediapipe.solutions.face_detection
 

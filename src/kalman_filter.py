@@ -1,8 +1,8 @@
+from time import perf_counter
 from typing import Optional
 
 import cv2
 from numpy import array, float64
-from time import perf_counter
 
 
 class KalmanFilter:

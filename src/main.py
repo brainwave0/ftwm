@@ -1,20 +1,19 @@
 import asyncio
 from argparse import ArgumentParser
 from os import environ
-from signal import signal, SIGTERM, SIGKILL
-import sys
+
 import cv2
 from mediapipe.python.solutions.face_detection import FaceDetection
 from xcffib import connect
 
 from . import hooks, hook_modules
+from .event import handle_event
+from .face_tracking import face_delta
 from .jitter_filter import JitterFilter
 from .kalman_filter import KalmanFilter
 from .misc import register_wm, pan
 from .screen import Screen
 from .window import Window
-from .face_tracking import face_delta
-from .event import handle_event
 
 
 async def main() -> None:

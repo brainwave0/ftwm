@@ -1,6 +1,5 @@
 from collections import deque
 from typing import Sequence
-from itertools import count
 
 
 class JitterFilter:

@@ -1,5 +1,5 @@
 from inspect import iscoroutinefunction
-from typing import Callable, Coroutine
+from typing import Callable
 
 
 class Hook:

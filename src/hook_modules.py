@@ -1,4 +1,4 @@
-from src import dbus, increment, click_to_focus
+from src import dbus, click_to_focus
 
 
 def init() -> None:

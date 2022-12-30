@@ -1,7 +1,5 @@
 from typing import Hashable, Dict
 
-from src import hooks
-
 
 class IncrementState:
     def __init__(self):

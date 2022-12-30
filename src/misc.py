@@ -1,20 +1,10 @@
-from functools import reduce
-from logging import warning, debug
-from typing import Iterable, Optional
+from typing import Iterable
 
-import cv2
 import mediapipe
-import xcffib
 from xcffib import Connection
-from xcffib.randr import ScreenChangeNotifyEvent
 from xcffib.xproto import (
     CW,
     EventMask,
-    MapRequestEvent,
-    DestroyNotifyEvent,
-    WindowError,
-    ButtonPressEvent,
-    DrawableError,
 )
 
 from .window import Window
