@@ -4,6 +4,7 @@ import mediapipe
 from mediapipe.framework.formats.detection_pb2 import Detection
 import cv2
 from typing import Optional
+
 face_detection = mediapipe.solutions.face_detection
 
 
@@ -19,18 +20,22 @@ def average_point(image, detection):
     """
     Averages the detected points for each feature of the face, including the center of the bounding box. This helps to reduce jitter.
     """
-    points = [face_detection.get_key_point(detection, i) for i in face_detection.FaceKeyPoint]
+    points = [
+        face_detection.get_key_point(detection, i) for i in face_detection.FaceKeyPoint
+    ]
     points = [(point.x * image.shape[1], point.y * image.shape[0]) for point in points]
     box = detection.location_data.relative_bounding_box
-    box_center = ((box.xmin + box.width / 2) * image.shape[1], (box.ymin + box.height / 2) * image.shape[0])
+    box_center = (
+        (box.xmin + box.width / 2) * image.shape[1],
+        (box.ymin + box.height / 2) * image.shape[0],
+    )
     points.append(box_center)
     point = reduce(lambda a, b: (a[0] + b[0], a[1] + b[1]), points)
     return point[0] / len(points), point[1] / len(points)
 
 
 # noinspection PyUnresolvedReferences
-def face_delta(face_detector, image: cv2.Mat) -> Optional[
-    tuple[int, int]]:
+def face_delta(face_detector, image: cv2.Mat) -> Optional[tuple[int, int]]:
     """
     Gets the nose position relative to the center of the camera frame.
     """
@@ -40,7 +45,8 @@ def face_delta(face_detector, image: cv2.Mat) -> Optional[
     detections = face_detector.process(image).detections
     if detections:
         closest: mediapipe.framework.formats.detection_pb2.Detection = max(
-            detections, key=lambda x: relative_face_area(x))
+            detections, key=lambda x: relative_face_area(x)
+        )
         average_point_ = average_point(image, closest)
         return average_point_[0] - center[0], average_point_[1] - center[1]
     else:

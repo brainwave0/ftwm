@@ -21,7 +21,6 @@ with mp_face_detection.FaceDetection(
             continue
         annotated_image = image.copy()
         for detection in results.detections:
-            print('Nose tip:')
             print(mp_face_detection.get_key_point(
                 detection, mp_face_detection.FaceKeyPoint.NOSE_TIP))
             mp_drawing.draw_detection(annotated_image, detection)
@@ -35,7 +34,6 @@ with mp_face_detection.FaceDetection(
     while cap.isOpened():
         success, image = cap.read()
         if not success:
-            print("Ignoring empty camera frame.")
             # If loading a video, use 'break' instead of 'continue'.
             continue
 

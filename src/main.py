@@ -1,8 +1,8 @@
 import asyncio
 from argparse import ArgumentParser
 from os import environ
-from sys import stderr
-
+from signal import signal, SIGTERM, SIGKILL
+import sys
 import cv2
 from mediapipe.python.solutions.face_detection import FaceDetection
 from xcffib import connect
@@ -23,15 +23,14 @@ async def main() -> None:
     arguments = argument_parser.parse_args()
 
     hook_modules.init()
-    connection = connect(environ['DISPLAY'])
+    connection = connect(environ["DISPLAY"])
     register_wm(connection)
     camera = cv2.VideoCapture(arguments.camera)
     camera.set(cv2.CAP_PROP_FPS, 60)
     windows: list[Window] = []
     scale = 8
     kalman_filter = KalmanFilter(scale)
-    jitter_filter = JitterFilter(threshold=9 * scale,
-                                 period=5)
+    jitter_filter = JitterFilter(threshold=9 * scale, period=5)
     root = connection.get_setup().roots[0]
     screen = Screen(root.width_in_pixels, root.height_in_pixels)
     await hooks.main_initializing.fire_async(screen, windows)

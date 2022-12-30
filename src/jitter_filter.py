@@ -12,9 +12,12 @@ class JitterFilter:
     period: How many iterations to keep track of. Larger values prevent it from getting stuck mid-movement, but increase the delay before stillness is detected.
     """
 
-    def __init__(self, origin: tuple[int, int] = (0, 0), threshold: int = 56, period: int = 7):
+    def __init__(
+        self, origin: tuple[int, int] = (0, 0), threshold: int = 56, period: int = 7
+    ):
         self._prevs: deque[tuple[int, int]] = deque(
-            [origin], maxlen=period)  # last [period] recorded values
+            [origin], maxlen=period
+        )  # last [period] recorded values
         self._anchor = origin  # reference position to stick to
         self._threshold = threshold
         self._period = period
@@ -28,7 +31,9 @@ class JitterFilter:
 
     def filter(self, other: tuple[int, int]) -> tuple[int, int]:
         self._prevs.append(other)
-        if self._moving([i[0] for i in self._prevs]) or self._moving([i[1] for i in self._prevs]):
+        if self._moving([i[0] for i in self._prevs]) or self._moving(
+            [i[1] for i in self._prevs]
+        ):
             self._anchor = other
             return other
         else:

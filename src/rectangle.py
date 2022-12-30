@@ -1,7 +1,7 @@
-
-
 class Rectangle:
-    def __init__(self, left: float = 0, top: float = 0, width: float = 0, height: float = 0) -> None:
+    def __init__(
+        self, left: float = 0, top: float = 0, width: float = 0, height: float = 0
+    ) -> None:
         assert width >= 0 and height >= 0
         self.top = top
         self.left = left
@@ -134,10 +134,20 @@ class Rectangle:
         return result
 
     def overlaps(self, other) -> bool:
-        return self.left < other.right and other.left < self.right and self.top < other.bottom and other.top < self.bottom
+        return (
+            self.left < other.right
+            and other.left < self.right
+            and self.top < other.bottom
+            and other.top < self.bottom
+        )
 
     def __contains__(self, other) -> bool:
-        return self.left <= other.left <= self.right and self.left <= other.right <= self.right and self.top <= other.top <= self.bottom and self.top <= other.bottom <= self.bottom
+        return (
+            self.left <= other.left <= self.right
+            and self.left <= other.right <= self.right
+            and self.top <= other.top <= self.bottom
+            and self.top <= other.bottom <= self.bottom
+        )
 
     def area(self) -> float:
         return self.width * self.height
@@ -149,7 +159,9 @@ class Rectangle:
         return self.as_list() == other.as_list()
 
     def adjacent_to(self, other):
-        return (self.top == other.top) != (self.right == other.right) != (self.bottom == other.bottom) != (
-                    self.left == other.left)
-
-
+        return (
+            (self.top == other.top)
+            != (self.right == other.right)
+            != (self.bottom == other.bottom)
+            != (self.left == other.left)
+        )

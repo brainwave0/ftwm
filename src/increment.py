@@ -1,6 +1,8 @@
 from typing import Hashable, Dict
 
 from src import hooks
+
+
 class IncrementState:
     def __init__(self):
         self.count = 0
@@ -9,6 +11,8 @@ class IncrementState:
 
 
 states: Dict[Hashable, IncrementState] = {}
+
+
 def increment(key: Hashable, number: float, direction: int) -> float:
     assert direction in (-1, 1)
     state = states.get(key, IncrementState())
@@ -22,7 +26,7 @@ def increment(key: Hashable, number: float, direction: int) -> float:
         # initialize delta to 1 / 5 of original value
         state.delta = number / 5
     else:
-        # halve the delta if count is zero, multiply it by 1.25 if it is one, and double it if count >= 2
+        # halve the delta if count is zero, multiply it by 1.25 if count is one, and double it if count >= 2
         state.delta *= 0.5 + min(2, state.count) * 0.75
     state.prev_dir = direction
     return number + state.delta * direction

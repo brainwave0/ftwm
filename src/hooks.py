@@ -1,3 +1,4 @@
+from inspect import iscoroutinefunction
 from typing import Callable, Coroutine
 
 
@@ -7,7 +8,7 @@ class Hook:
         self.coroutines = []
 
     def register(self, function: Callable) -> None:
-        if isinstance(function, Coroutine):
+        if iscoroutinefunction(function):
             self.coroutines.append(function)
         else:
             self.functions.append(function)
@@ -15,9 +16,10 @@ class Hook:
     def fire(self, *args, **kwargs) -> None:
         for function in self.functions:
             function(*args, **kwargs)
+
     async def fire_async(self, *args, **kwargs) -> None:
         for coroutine in self.coroutines:
-            coroutine(*args, **kwargs)
+            await coroutine(*args, **kwargs)
 
 
 map_request = Hook()

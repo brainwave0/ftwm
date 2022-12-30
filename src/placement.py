@@ -34,9 +34,20 @@ def place(screen: Screen, windows: list[Window], window: Window) -> None:
                 continue
 
             # try each gravity and see how well the window fits when anchored there
-            for gravity in ['center', 'top_center', 'top_right', 'right_center', 'bottom_right', 'bottom_center',
-                            'bottom_left', 'left_center', 'top_left']:
-                spot = copy(window.virtual)  # make copy of the window rectangle for testing purposes
+            for gravity in [
+                "center",
+                "top_center",
+                "top_right",
+                "right_center",
+                "bottom_right",
+                "bottom_center",
+                "bottom_left",
+                "left_center",
+                "top_left",
+            ]:
+                spot = copy(
+                    window.virtual
+                )  # make copy of the window rectangle for testing purposes
 
                 # anchor it to the cell
                 gravity_point = getattr(cell, gravity)
@@ -69,9 +80,19 @@ def score(spot: Rectangle, screen: Screen) -> float:
 
 
 def get_gravity(screen: Screen, spot: Rectangle) -> str:
-    gravities = ['top_center', 'top_right', 'right_center', 'bottom_right', 'bottom_center', 'bottom_left',
-                 'left_center', 'top_left']
-    return min(gravities, key=lambda g: distance(getattr(spot, g), screen.geometry.center))
+    gravities = [
+        "top_center",
+        "top_right",
+        "right_center",
+        "bottom_right",
+        "bottom_center",
+        "bottom_left",
+        "left_center",
+        "top_left",
+    ]
+    return min(
+        gravities, key=lambda g: distance(getattr(spot, g), screen.geometry.center)
+    )
 
 
 def arrange(screen: Screen, windows: list[Window]) -> None:

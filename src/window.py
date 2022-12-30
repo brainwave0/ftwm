@@ -5,8 +5,13 @@ from .rectangle import Rectangle
 
 
 class Window:
-    def __init__(self, connection: Connection, id: int, virtual_position: tuple[int, int] = (0, 0),
-                 size=(0, 0)) -> None:
+    def __init__(
+        self,
+        connection: Connection,
+        id: int,
+        virtual_position: tuple[int, int] = (0, 0),
+        size=(0, 0),
+    ) -> None:
         assert not connection.invalid()
         assert size[0] >= 0 and size[1] >= 0
         self._position = (0, 0)
@@ -26,7 +31,8 @@ class Window:
     def position(self, other: tuple[int, int]) -> None:
         if self._position != other:
             self.connection.core.ConfigureWindow(
-                self.id, ConfigWindow.X | ConfigWindow.Y, list(other))
+                self.id, ConfigWindow.X | ConfigWindow.Y, list(other)
+            )
             self._position = other
 
     @property
@@ -36,7 +42,9 @@ class Window:
     @width.setter
     def width(self, other):
         self.virtual.width = other
-        self.connection.core.ConfigureWindow(self.id, ConfigWindow.Width, [max(1, int(other))])
+        self.connection.core.ConfigureWindow(
+            self.id, ConfigWindow.Width, [max(1, int(other))]
+        )
 
     @property
     def height(self):
@@ -45,7 +53,9 @@ class Window:
     @height.setter
     def height(self, other):
         self.virtual.height = other
-        self.connection.core.ConfigureWindow(self.id, ConfigWindow.Height, [max(1, int(other))])
+        self.connection.core.ConfigureWindow(
+            self.id, ConfigWindow.Height, [max(1, int(other))]
+        )
 
 
 def active_window(windows: list[Window]) -> Window:

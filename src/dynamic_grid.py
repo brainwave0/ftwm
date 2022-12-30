@@ -42,7 +42,9 @@ class DynamicGrid:
                 else:
                     values = self._array[index - 1]
 
-                self._array = numpy.insert(self._array, index, values, axis=0 if dim == 1 else 1)
+                self._array = numpy.insert(
+                    self._array, index, values, axis=0 if dim == 1 else 1
+                )
 
     # noinspection PyTypeChecker
     def set_range(self, rectangle: Rectangle, obj: Any) -> None:
@@ -56,7 +58,10 @@ class DynamicGrid:
         self.split(rectangle.bottom, 1)
         for cell, _ in self:
             if cell.overlaps(rectangle):
-                self._array[self._horizontal_splits.index(cell.top), self._vertical_splits.index(cell.left)] = obj
+                self._array[
+                    self._horizontal_splits.index(cell.top),
+                    self._vertical_splits.index(cell.left),
+                ] = obj
 
     def get_range(self, rectangle: Rectangle) -> list[tuple[Rectangle, Any]]:
         return [(cell, value) for cell, value in self if cell.overlaps(rectangle)]
