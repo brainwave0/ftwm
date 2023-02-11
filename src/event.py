@@ -31,14 +31,6 @@ def map_request(
     hooks.map_request.fire(connection, event.window)
 
 
-def screen_change_notify(
-    event: ScreenChangeNotifyEvent, windows: list[Window], screen: Screen
-) -> None:
-    screen.geometry.width = event.width
-    screen.geometry.height = event.height
-    arrange(screen, windows)
-
-
 def destroy_notify(event: DestroyNotifyEvent, windows: list[Window]) -> None:
     try:
         window = next(i for i in windows if i.id == event.window)
@@ -61,8 +53,6 @@ def handle_event(connection: Connection, windows: list[Window], screen: Screen) 
         if event is not None:
             if isinstance(event, MapRequestEvent):
                 map_request(connection, event, windows, screen)
-            elif isinstance(event, ScreenChangeNotifyEvent):
-                screen_change_notify(event, windows, screen)
             elif isinstance(event, DestroyNotifyEvent):
                 destroy_notify(event, windows)
             elif isinstance(event, ButtonPressEvent):
