@@ -17,7 +17,7 @@ The `Increment` action is for increasing or decreasing the size of the focused w
 
 ## Arrange
 
-Re-arranges the windows according to the rules of the layout.
+Re-arranges the windows according to the rules of the layout. Windows are placed in order from largest to smallest.
 
 # LAYOUT
 
