@@ -8,13 +8,15 @@ from xcffib import connect
 
 from . import hooks, hook_modules
 from .event import handle_event
-from .face_tracking import face_delta
+from .face_tracking import face_delta, face_detections
 from .jitter_filter import JitterFilter
 from .kalman_filter import KalmanFilter
 from .misc import register_wm, pan
 from .screen import Screen
 from .window import Window
 from threading import Thread
+import logging
+from glob import glob
 
 
 def handle_events(connection, windows, screen):
@@ -22,15 +24,37 @@ def handle_events(connection, windows, screen):
         handle_event(connection, windows, screen)
 
 
+def automatically_select_camera(face_detector):
+    for index in sorted(
+        int(device.replace("/dev/video", "")) for device in glob("/dev/video*")
+    ):
+        camera = cv2.VideoCapture(index)
+        _, frame = camera.read()
+        if frame is not None:
+            logging.error(f"camera {index} has a frame")
+            detections = face_detections(face_detector, frame)
+            if detections:
+                logging.error(f"camera {index} has a face")
+                return camera
+        camera.release()
+    return None
+
+
 async def main() -> None:
     argument_parser = ArgumentParser()
-    argument_parser.add_argument("--camera", type=int, default=0)
+    argument_parser.add_argument("--camera", type=int)
     arguments = argument_parser.parse_args()
 
     hook_modules.init()
     connection = connect(environ["DISPLAY"])
     register_wm(connection)
-    camera = cv2.VideoCapture(arguments.camera)
+    face_detector = FaceDetection(model_selection=0, min_detection_confidence=0)
+    logging.error(f"arguments.camera is {arguments.camera}")
+    camera = (
+        cv2.VideoCapture(arguments.camera)
+        if arguments.camera
+        else automatically_select_camera(face_detector)
+    )
     camera.set(cv2.CAP_PROP_FPS, 60)
     windows: list[Window] = []
     scale = 8
@@ -39,7 +63,6 @@ async def main() -> None:
     root = connection.get_setup().roots[0]
     screen = Screen(root.width_in_pixels, root.height_in_pixels)
     await hooks.main_initializing.fire_async(screen, windows)
-    face_detector = FaceDetection(model_selection=0, min_detection_confidence=0)
     Thread(
         target=handle_events, args=(connection, windows, screen), daemon=True
     ).start()
@@ -50,6 +73,7 @@ async def main() -> None:
             window_delta = (face_delta_[0] * scale, -face_delta_[1] * scale)
             window_delta = kalman_filter.correct(window_delta)
             window_delta = jitter_filter.filter(window_delta)
+            logging.error("panning")
             pan(windows, window_delta)
         connection.flush()
         await asyncio.sleep(0)

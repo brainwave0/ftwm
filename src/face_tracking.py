@@ -1,5 +1,5 @@
 from functools import reduce
-from typing import Optional
+from typing import Optional, Sequence
 
 import cv2
 import mediapipe
@@ -34,15 +34,20 @@ def average_point(image, detection):
     return point[0] / len(points), point[1] / len(points)
 
 
+def face_detections(face_detector, image: cv2.Mat) -> Optional[Sequence[Detection]]:
+    image.flags.writeable = False
+    image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+    detections = face_detector.process(image).detections
+    return detections
+
+
 # noinspection PyUnresolvedReferences
 def face_delta(face_detector, image: cv2.Mat) -> Optional[tuple[int, int]]:
     """
     Gets the nose position relative to the center of the camera frame.
     """
     center = (int(image.shape[1] / 2), int(image.shape[0] / 2))
-    image.flags.writeable = False
-    image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-    detections = face_detector.process(image).detections
+    detections = face_detections(face_detector, image)
     if detections:
         closest: mediapipe.framework.formats.detection_pb2.Detection = max(
             detections, key=lambda x: relative_face_area(x)

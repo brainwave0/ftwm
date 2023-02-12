@@ -26,8 +26,8 @@ class KalmanFilter:
         )
         self.cv2_kalman_filter.measurementNoiseCov = array(
             [
-                [err_stdev ** 2, 0.0],
-                [0.0, err_stdev ** 2],
+                [err_stdev**2, 0.0],
+                [0.0, err_stdev**2],
             ],
             float64,
         )
@@ -44,10 +44,10 @@ class KalmanFilter:
         acc = self._acc
         self.cv2_kalman_filter.transitionMatrix = array(
             [
-                [1.0, dt, 0.5 * dt ** 2, 0.0, 0.0, 0.0],
+                [1.0, dt, 0.5 * dt**2, 0.0, 0.0, 0.0],
                 [0.0, 1.0, dt, 0.0, 0.0, 0.0],
                 [0.0, 0.0, 1.0, 0.0, 0.0, 0.0],
-                [0.0, 0.0, 0.0, 1.0, dt, 0.5 * dt ** 2],
+                [0.0, 0.0, 0.0, 1.0, dt, 0.5 * dt**2],
                 [0.0, 0.0, 0.0, 0.0, 1.0, dt],
                 [0.0, 0.0, 0.0, 0.0, 0.0, 1.0],
             ],
@@ -56,25 +56,25 @@ class KalmanFilter:
         self.cv2_kalman_filter.processNoiseCov = array(
             [
                 [
-                    acc ** 2 * dt ** 4 / 4,
-                    acc ** 2 * dt ** 3 / 2,
-                    acc ** 2 * dt ** 2 / 2,
+                    acc**2 * dt**4 / 4,
+                    acc**2 * dt**3 / 2,
+                    acc**2 * dt**2 / 2,
                     0.0,
                     0.0,
                     0.0,
                 ],
                 [
-                    acc ** 2 * dt ** 3 / 2,
-                    acc ** 2 * dt ** 2,
-                    acc ** 2 * dt,
+                    acc**2 * dt**3 / 2,
+                    acc**2 * dt**2,
+                    acc**2 * dt,
                     0.0,
                     0.0,
                     0.0,
                 ],
                 [
-                    acc ** 2 * dt ** 2 / 2,
-                    acc ** 2 * dt,
-                    acc ** 2 * 1.0,
+                    acc**2 * dt**2 / 2,
+                    acc**2 * dt,
+                    acc**2 * 1.0,
                     0.0,
                     0.0,
                     0.0,
@@ -83,25 +83,25 @@ class KalmanFilter:
                     0.0,
                     0.0,
                     0.0,
-                    acc ** 2 * dt ** 4 / 4,
-                    acc ** 2 * dt ** 3 / 2,
-                    acc ** 2 * dt ** 2 / 2,
+                    acc**2 * dt**4 / 4,
+                    acc**2 * dt**3 / 2,
+                    acc**2 * dt**2 / 2,
                 ],
                 [
                     0.0,
                     0.0,
                     0.0,
-                    acc ** 2 * dt ** 3 / 2,
-                    acc ** 2 * dt ** 2,
-                    acc ** 2 * dt,
+                    acc**2 * dt**3 / 2,
+                    acc**2 * dt**2,
+                    acc**2 * dt,
                 ],
                 [
                     0.0,
                     0.0,
                     0.0,
-                    acc ** 2 * dt ** 2 / 2,
-                    acc ** 2 * dt,
-                    acc ** 2 * 1.0,
+                    acc**2 * dt**2 / 2,
+                    acc**2 * dt,
+                    acc**2 * 1.0,
                 ],
             ],
             float64,

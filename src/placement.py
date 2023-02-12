@@ -71,7 +71,7 @@ def place(screen: Screen, windows: list[Window], window: Window) -> None:
 def distance(point_a: tuple[float, float], point_b: tuple[float, float]) -> float:
     dx = point_b[0] - point_a[0]
     dy = point_b[1] - point_a[1]
-    return math.sqrt(dx ** 2 + dy ** 2)
+    return math.sqrt(dx**2 + dy**2)
 
 
 def score(spot: Rectangle, screen: Screen) -> float:

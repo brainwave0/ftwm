@@ -25,7 +25,10 @@ class JitterFilter:
         """
         Determines if the subject is moving or still. It works by summing the changes in position. If the subject is still, then it should be close to zero.
         """
-        return len(xs) > 1 and abs(sum(a - b for a, b in zip(xs, xs[1:]))) > self._threshold
+        return (
+            len(xs) > 1
+            and abs(sum(a - b for a, b in zip(xs, xs[1:]))) > self._threshold
+        )
 
     def filter(self, other: tuple[int, int]) -> tuple[int, int]:
         self._prevs.append(other)
