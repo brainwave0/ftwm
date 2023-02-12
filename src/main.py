@@ -16,9 +16,12 @@ from .screen import Screen
 from .window import Window
 from threading import Thread
 
+
 def handle_events(connection, windows, screen):
     while True:
         handle_event(connection, windows, screen)
+
+
 async def main() -> None:
     argument_parser = ArgumentParser()
     argument_parser.add_argument("--camera", type=int, default=0)
@@ -37,7 +40,9 @@ async def main() -> None:
     screen = Screen(root.width_in_pixels, root.height_in_pixels)
     await hooks.main_initializing.fire_async(screen, windows)
     face_detector = FaceDetection(model_selection=0, min_detection_confidence=0)
-    Thread(target=handle_events, args=(connection, windows, screen), daemon=True).start()
+    Thread(
+        target=handle_events, args=(connection, windows, screen), daemon=True
+    ).start()
     while True:
         got_frame, frame = camera.read()
         face_delta_ = face_delta(face_detector, frame)
