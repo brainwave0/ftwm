@@ -12,16 +12,16 @@ class JitterFilter:
     """
 
     def __init__(
-        self, origin: tuple[int, int] = (0, 0), threshold: int = 56, period: int = 7
+        self, origin: tuple[float, float] = (0, 0), threshold: float = 56, period: int = 7
     ):
-        self._prevs: deque[tuple[int, int]] = deque(
+        self._prevs: deque[tuple[float, float]] = deque(
             [origin], maxlen=period
         )  # last [period] recorded values
         self._anchor = origin  # reference position to stick to
         self._threshold = threshold
         self._period = period
 
-    def _moving(self, xs: Sequence[int]) -> bool:
+    def _moving(self, xs: Sequence[float]) -> bool:
         """
         Determines if the subject is moving or still. It works by summing the changes in position. If the subject is still, then it should be close to zero.
         """
@@ -30,7 +30,7 @@ class JitterFilter:
             and abs(sum(a - b for a, b in zip(xs, xs[1:]))) > self._threshold
         )
 
-    def filter(self, other: tuple[int, int]) -> tuple[int, int]:
+    def filter(self, other: tuple[float, float]) -> tuple[float, float]:
         self._prevs.append(other)
         if self._moving([i[0] for i in self._prevs]) or self._moving(
             [i[1] for i in self._prevs]

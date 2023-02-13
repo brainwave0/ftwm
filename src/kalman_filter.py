@@ -10,10 +10,10 @@ class KalmanFilter:
     A wrapper for cv2.KalmanFilter that is set up for two-dimensional space.
     """
 
-    def __init__(self, scale) -> None:
+    def __init__(self) -> None:
         self.cv2_kalman_filter = cv2.KalmanFilter(6, 2, type=6)
-        err_stdev = scale
-        self._acc = 64 * scale
+        err_stdev = 1
+        self._acc = 64
         self.cv2_kalman_filter.statePre = array(
             [[0.0], [0.0], [0.0], [0.0], [0.0], [0.0]], float64
         )
@@ -107,10 +107,10 @@ class KalmanFilter:
             float64,
         )
 
-    def correct(self, value: tuple[int, int]) -> tuple[int, int]:
+    def correct(self, value: tuple[float, float]) -> tuple[float, float]:
         self._update_dt()
         corrected = self.cv2_kalman_filter.correct(
-            array([[float(value[0])], [float(value[1])]], float64)
+            array([[value[0]], [value[1]]], float64)
         )
         self.cv2_kalman_filter.predict()
         return corrected[0][0], corrected[3][0]

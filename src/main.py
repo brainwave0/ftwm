@@ -17,11 +17,13 @@ from .window import Window
 from threading import Thread
 import logging
 from glob import glob
+import time
 
 
 def handle_events(connection, windows, screen):
     while True:
         handle_event(connection, windows, screen)
+        time.sleep(1 / 60)
 
 
 def automatically_select_camera(face_detector):
@@ -52,14 +54,13 @@ async def main() -> None:
     logging.error(f"arguments.camera is {arguments.camera}")
     camera = (
         cv2.VideoCapture(arguments.camera)
-        if arguments.camera
+        if arguments.camera is not None
         else automatically_select_camera(face_detector)
     )
     camera.set(cv2.CAP_PROP_FPS, 60)
     windows: list[Window] = []
-    scale = 8
-    kalman_filter = KalmanFilter(scale)
-    jitter_filter = JitterFilter(threshold=9 * scale, period=5)
+    kalman_filter = KalmanFilter(1)
+    jitter_filter = JitterFilter(threshold=8, period=5)
     root = connection.get_setup().roots[0]
     screen = Screen(root.width_in_pixels, root.height_in_pixels)
     await hooks.main_initializing.fire_async(screen, windows)
@@ -70,13 +71,13 @@ async def main() -> None:
         got_frame, frame = camera.read()
         face_delta_ = face_delta(face_detector, frame)
         if face_delta_:
-            window_delta = (face_delta_[0] * scale, -face_delta_[1] * scale)
+            window_delta = (face_delta_[0], -face_delta_[1])
             window_delta = kalman_filter.correct(window_delta)
             window_delta = jitter_filter.filter(window_delta)
             logging.error("panning")
-            pan(windows, window_delta)
+            pan(windows, window_delta, scale=28)
         connection.flush()
-        await asyncio.sleep(0)
+        await asyncio.sleep(1 / 60)
 
 
 asyncio.run(main())
