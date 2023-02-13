@@ -2,6 +2,7 @@ from xcffib import Connection
 from xcffib.xproto import ConfigWindow
 
 from .rectangle import Rectangle
+from typing import Optional
 
 
 class Window:
@@ -58,5 +59,5 @@ class Window:
         )
 
 
-def active_window(windows: list[Window]) -> Window:
+def active_window(windows: list[Window]) -> Optional[Window]:
     return next((window for window in windows if window.active), None)

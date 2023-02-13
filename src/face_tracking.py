@@ -42,7 +42,7 @@ def face_detections(face_detector, image: cv2.Mat) -> Optional[Sequence[Detectio
 
 
 # noinspection PyUnresolvedReferences
-def face_delta(face_detector, image: cv2.Mat) -> Optional[tuple[int, int]]:
+def face_delta(face_detector, image: cv2.Mat) -> Optional[tuple[float, float]]:
     """
     Gets the nose position relative to the center of the camera frame.
     """

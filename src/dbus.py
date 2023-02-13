@@ -2,7 +2,6 @@ from dbus_next import DBusError
 from dbus_next.aio import MessageBus
 from dbus_next.service import ServiceInterface, method
 
-from src import hooks
 from src.increment import increment
 from src.placement import arrange
 from src.screen import Screen
@@ -43,7 +42,3 @@ async def setup(screen: Screen, windows: list[Window]) -> None:
     interface = Interface(screen, windows)
     bus.export("/com/github/brainwave0/ftwm/interface", interface)
     await bus.request_name("com.github.brainwave0.ftwm")
-
-
-def register() -> None:
-    hooks.main_initializing.register(setup)

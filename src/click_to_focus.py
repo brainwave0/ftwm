@@ -11,7 +11,6 @@ from xcffib.xproto import (
     InputFocus,
 )
 
-from src import hooks
 from src.window import active_window, Window
 
 
@@ -56,9 +55,3 @@ def focus_window(
                 window.active = True
             else:
                 window.active = False
-
-
-def register() -> None:
-    hooks.map_request.register(register_for_button_press_events)
-    hooks.button_pressed.register(allow_events)
-    hooks.window_clicked.register(focus_window)

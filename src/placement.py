@@ -63,7 +63,7 @@ def place(screen: Screen, windows: list[Window], window: Window) -> None:
                     best_score = new_score
 
         assert best_spot is not None
-        window.virtual.position = tuple(map(int, best_spot.position))
+        window.virtual.position = best_spot.position
 
     screen.grid.set_range(window.virtual, window)
 

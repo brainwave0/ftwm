@@ -9,10 +9,10 @@ from xcffib.xproto import (
     DrawableError,
 )
 
-from . import hooks
 from .placement import place, arrange
 from .screen import Screen
 from .window import Window
+from .click_to_focus import register_for_button_press_events, allow_events, focus_window
 
 
 def map_request(
@@ -28,7 +28,7 @@ def map_request(
     place(screen, windows, window)
     windows.append(window)
     connection.core.MapWindow(event.window)
-    hooks.map_request.fire(connection, event.window)
+    register_for_button_press_events(connection, event.window)
 
 
 def destroy_notify(event: DestroyNotifyEvent, windows: list[Window]) -> None:
@@ -43,8 +43,8 @@ def button_press(
     connection: Connection, event: ButtonPressEvent, windows: list[Window]
 ) -> None:
     if any(event.event == window.id for window in windows):
-        hooks.window_clicked.fire(connection, event.event, windows)
-    hooks.button_pressed.fire(connection)
+        focus_window(connection, event.event, windows)
+    allow_events(connection)
 
 
 def handle_event(connection: Connection, windows: list[Window], screen: Screen) -> None:

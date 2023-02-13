@@ -12,7 +12,7 @@ from .window import Window
 face_detection = mediapipe.solutions.face_detection
 
 
-def pan(windows: Iterable[Window], delta: tuple[int, int], scale: float = 1) -> None:
+def pan(windows: Iterable[Window], delta: tuple[float, float], scale: float = 1) -> None:
     """
     Pans windows.
 
