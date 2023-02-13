@@ -75,8 +75,9 @@ def distance(point_a: tuple[float, float], point_b: tuple[float, float]) -> floa
 
 
 def score(spot: Rectangle, screen: Screen) -> float:
-    nearest_point = getattr(spot, get_gravity(screen, spot))
-    return 1 / (distance(nearest_point, screen.geometry.center) + 1)
+    horizontal_score = abs(spot.center[0] - screen.geometry.center[0]) / (screen.geometry.width / 2)
+    vertical_score = abs(spot.center[1] - screen.geometry.center[1]) / (screen.geometry.height / 2)
+    return 1 / (horizontal_score + vertical_score + 1)
 
 
 def get_gravity(screen: Screen, spot: Rectangle) -> str:

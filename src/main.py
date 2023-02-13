@@ -59,7 +59,7 @@ async def main() -> None:
     )
     camera.set(cv2.CAP_PROP_FPS, 60)
     windows: list[Window] = []
-    kalman_filter = KalmanFilter(1)
+    kalman_filter = KalmanFilter()
     jitter_filter = JitterFilter(threshold=8, period=5)
     root = connection.get_setup().roots[0]
     screen = Screen(root.width_in_pixels, root.height_in_pixels)
@@ -75,7 +75,7 @@ async def main() -> None:
             window_delta = kalman_filter.correct(window_delta)
             window_delta = jitter_filter.filter(window_delta)
             logging.error("panning")
-            pan(windows, window_delta, scale=28)
+            pan(windows, window_delta, scale=16)
         connection.flush()
         await asyncio.sleep(1 / 60)
 
