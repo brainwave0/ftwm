@@ -23,7 +23,7 @@ import src.dbus as dbus
 def handle_events(connection, windows, screen):
     while True:
         handle_event(connection, windows, screen)
-        time.sleep(1 / 60)
+        time.sleep(1 / 120)
 
 
 def automatically_select_camera(face_detector):
@@ -54,9 +54,12 @@ async def main() -> None:
         else automatically_select_camera(face_detector)
     )
     camera.set(cv2.CAP_PROP_FPS, 60)
+    camera.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+    camera.set(cv2.CAP_PROP_FRAME_WIDTH, 720)
     windows: list[Window] = []
-    kalman_filter = KalmanFilter()
-    jitter_filter = JitterFilter(threshold=8, period=5)
+    scale = 16
+    kalman_filter = KalmanFilter(scale, 121 + 8)
+    jitter_filter = JitterFilter(threshold=(10 - 1) * scale, period=9)
     root = connection.get_setup().roots[0]
     screen = Screen(root.width_in_pixels, root.height_in_pixels)
     await dbus.setup(screen, windows)
@@ -67,10 +70,10 @@ async def main() -> None:
         got_frame, frame = camera.read()
         face_delta_ = face_delta(face_detector, frame)
         if face_delta_:
-            window_delta = (face_delta_[0], -face_delta_[1])
+            window_delta = (face_delta_[0] * scale, -face_delta_[1] * scale)
             window_delta = kalman_filter.correct(window_delta)
             window_delta = jitter_filter.filter(window_delta)
-            pan(windows, window_delta, scale=16)
+            pan(windows, window_delta)
         connection.flush()
         await asyncio.sleep(1 / 60)
 
