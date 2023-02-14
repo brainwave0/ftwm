@@ -12,7 +12,10 @@ class JitterFilter:
     """
 
     def __init__(
-        self, origin: tuple[float, float] = (0, 0), threshold: float = 56, period: int = 7
+        self,
+        origin: tuple[float, float] = (0, 0),
+        threshold: float = 56,
+        period: int = 7,
     ):
         self._prevs: deque[tuple[float, float]] = deque(
             [origin], maxlen=period

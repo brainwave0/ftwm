@@ -10,7 +10,7 @@ class KalmanFilter:
     A wrapper for cv2.KalmanFilter that is set up for two-dimensional space.
     """
 
-    def __init__(self, scale, acceleration = 256) -> None:
+    def __init__(self, scale, acceleration=256) -> None:
         self.cv2_kalman_filter = cv2.KalmanFilter(6, 2, type=6)
         err_stdev = scale
         self._acc = acceleration

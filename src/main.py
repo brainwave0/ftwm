@@ -1,5 +1,4 @@
 import asyncio
-from argparse import ArgumentParser
 from os import environ
 
 import cv2
@@ -18,12 +17,17 @@ import logging
 from glob import glob
 import time
 import src.dbus as dbus
+from xdg import xdg_config_home
+from configparser import ConfigParser
+from pathlib import Path
+import shutil
+from os import makedirs
 
 
-def handle_events(connection, windows, screen):
+def handle_events(connection, windows, screen, frame_rate):
     while True:
         handle_event(connection, windows, screen)
-        time.sleep(1 / 120)
+        time.sleep(1 / frame_rate * 2)
 
 
 def automatically_select_camera(face_detector):
@@ -41,30 +45,43 @@ def automatically_select_camera(face_detector):
 
 
 async def main() -> None:
-    argument_parser = ArgumentParser()
-    argument_parser.add_argument("--camera", type=int)
-    arguments = argument_parser.parse_args()
+    source_directory = Path(__file__).resolve().parent
+    settings_file_path = xdg_config_home() / "ftwm/settings.ini"
+    if not settings_file_path.is_file():
+        makedirs(settings_file_path.parent, exist_ok=True)
+        shutil.copy(source_directory.parent / "settings.ini", settings_file_path)
+    settings = ConfigParser()
+    settings.read(settings_file_path)
 
     connection = connect(environ["DISPLAY"])
     register_wm(connection)
     face_detector = FaceDetection(model_selection=0, min_detection_confidence=0)
     camera = (
-        cv2.VideoCapture(arguments.camera)
-        if arguments.camera is not None
+        cv2.VideoCapture(settings.getint("Camera", "index"))
+        if "index" in settings["Camera"]
         else automatically_select_camera(face_detector)
     )
-    camera.set(cv2.CAP_PROP_FPS, 60)
-    camera.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-    camera.set(cv2.CAP_PROP_FRAME_WIDTH, 720)
+    camera.set(cv2.CAP_PROP_FPS, settings.getint("Camera", "fps"))
+    if "capture_width" in settings["Camera"] and "capture_height" in settings["Camera"]:
+        camera.set(cv2.CAP_PROP_FRAME_WIDTH, settings.getint("Camera", "capture_width"))
+        camera.set(
+            cv2.CAP_PROP_FRAME_WIDTH, settings.getint("Camera", "capture_height")
+        )
     windows: list[Window] = []
-    scale = 16
-    kalman_filter = KalmanFilter(scale, 121 + 8)
-    jitter_filter = JitterFilter(threshold=(10 - 1) * scale, period=9)
+    scale = settings.getfloat("DEFAULT", "scale")
+    kalman_filter = KalmanFilter(scale, settings.getfloat("DEFAULT", "acceleration"))
+    jitter_filter = JitterFilter(
+        threshold=settings.getfloat("DEFAULT", "jitter_threshold") * scale,
+        period=settings.getint("DEFAULT", "jitter_period"),
+    )
     root = connection.get_setup().roots[0]
     screen = Screen(root.width_in_pixels, root.height_in_pixels)
     await dbus.setup(screen, windows)
+    frame_rate = settings.getfloat("DEFAULT", "frame_rate")
     Thread(
-        target=handle_events, args=(connection, windows, screen), daemon=True
+        target=handle_events,
+        args=(connection, windows, screen, frame_rate),
+        daemon=True,
     ).start()
     while True:
         got_frame, frame = camera.read()
@@ -75,7 +92,7 @@ async def main() -> None:
             window_delta = jitter_filter.filter(window_delta)
             pan(windows, window_delta)
         connection.flush()
-        await asyncio.sleep(1 / 60)
+        await asyncio.sleep(1 / frame_rate)
 
 
 asyncio.run(main())
