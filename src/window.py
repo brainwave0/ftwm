@@ -11,7 +11,7 @@ class Window:
         connection: Connection,
         id: int,
         virtual_position: tuple[int, int] = (0, 0),
-        size=(0, 0),
+        size: tuple[int, int] = (0, 0),
     ) -> None:
         assert not connection.invalid()
         assert size[0] >= 0 and size[1] >= 0
@@ -37,22 +37,22 @@ class Window:
             self._position = other
 
     @property
-    def width(self):
+    def width(self) -> float:
         return self.virtual.width
 
     @width.setter
-    def width(self, other):
+    def width(self, other: int) -> None:
         self.virtual.width = other
         self.connection.core.ConfigureWindow(
             self.id, ConfigWindow.Width, [max(1, int(other))]
         )
 
     @property
-    def height(self):
+    def height(self) -> float:
         return self.virtual.height
 
     @height.setter
-    def height(self, other):
+    def height(self, other: int) -> None:
         self.virtual.height = other
         self.connection.core.ConfigureWindow(
             self.id, ConfigWindow.Height, [max(1, int(other))]

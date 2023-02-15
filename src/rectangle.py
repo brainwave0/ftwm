@@ -52,7 +52,7 @@ class Rectangle:
         self.top = other[1] - self.height
 
     @property
-    def center(self):
+    def center(self) -> tuple[float, float]:
         return self.left + self.width / 2, self.top + self.height / 2
 
     @center.setter
@@ -152,13 +152,13 @@ class Rectangle:
     def area(self) -> float:
         return self.width * self.height
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"Rectangle(left={self.left}, top={self.top}, width={self.width}, height={self.height})"
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         return self.as_list() == other.as_list()
 
-    def adjacent_to(self, other):
+    def adjacent_to(self, other) -> bool:
         return (
             (self.top == other.top)
             != (self.right == other.right)

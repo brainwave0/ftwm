@@ -2,7 +2,7 @@ from typing import Hashable, Dict
 
 
 class IncrementState:
-    def __init__(self):
+    def __init__(self) -> None:
         self.count = 0
         self.prev_dir = None
         self.delta = None
@@ -14,6 +14,7 @@ states: Dict[Hashable, IncrementState] = {}
 def increment(key: Hashable, number: float, direction: int) -> float:
     assert direction in (-1, 1)
     state = states.get(key, IncrementState())
+
     # keep track of how many times it has been incremented in the same direction
     if state.prev_dir == direction:
         state.count += 1

@@ -3,12 +3,12 @@ from os import environ
 
 import cv2
 from mediapipe.python.solutions.face_detection import FaceDetection
-from xcffib import connect
+from xcffib import connect, Connection
 
 from .event import handle_event
 from .face_tracking import face_delta, face_detections
 from .jitter_filter import JitterFilter
-from .kalman_filter import KalmanFilter
+from .moving_average_filter import MovingAverageFilter
 from .misc import register_wm, pan
 from .screen import Screen
 from .window import Window
@@ -24,13 +24,15 @@ import shutil
 from os import makedirs
 
 
-def handle_events(connection, windows, screen, frame_rate):
+def handle_events(
+    connection: Connection, windows: list[Window], screen: Screen, frame_rate: float
+) -> None:
     while True:
         handle_event(connection, windows, screen)
-        time.sleep(1 / frame_rate * 2)
+        time.sleep(1 / frame_rate / 2)
 
 
-def automatically_select_camera(face_detector):
+def automatically_select_camera(face_detector) -> cv2.VideoCapture:
     for index in sorted(
         int(device.replace("/dev/video", "")) for device in glob("/dev/video*")
     ):
@@ -69,10 +71,12 @@ async def main() -> None:
         )
     windows: list[Window] = []
     scale = settings.getfloat("DEFAULT", "scale")
-    kalman_filter = KalmanFilter(scale, settings.getfloat("DEFAULT", "acceleration"))
     jitter_filter = JitterFilter(
-        threshold=settings.getfloat("DEFAULT", "jitter_threshold") * scale,
-        period=settings.getint("DEFAULT", "jitter_period"),
+        threshold=settings.getfloat("Jitter Filter", "threshold") * scale,
+        period=settings.getint("Jitter Filter", "period"),
+    )
+    moving_average_filter = MovingAverageFilter(
+        period=settings.getint("DEFAULT", "moving_average_period")
     )
     root = connection.get_setup().roots[0]
     screen = Screen(root.width_in_pixels, root.height_in_pixels)
@@ -87,8 +91,9 @@ async def main() -> None:
         got_frame, frame = camera.read()
         face_delta_ = face_delta(face_detector, frame)
         if face_delta_:
-            window_delta = (face_delta_[0] * scale, -face_delta_[1] * scale)
-            window_delta = kalman_filter.correct(window_delta)
+            window_delta = face_delta_
+            window_delta = (window_delta[0] * scale, -window_delta[1] * scale)
+            window_delta = moving_average_filter.filter(window_delta)
             window_delta = jitter_filter.filter(window_delta)
             pan(windows, window_delta)
         connection.flush()

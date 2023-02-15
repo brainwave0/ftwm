@@ -4,6 +4,7 @@ from typing import Optional, Sequence
 import cv2
 import mediapipe
 from mediapipe.framework.formats.detection_pb2 import Detection
+import logging
 
 face_detection = mediapipe.solutions.face_detection
 
@@ -16,7 +17,7 @@ def relative_face_area(detection: Detection) -> float:
     return box.width * box.height
 
 
-def average_point(image, detection):
+def average_point(image: cv2.Mat, detection: Detection) -> tuple[float, float]:
     """
     Averages the detected points for each feature of the face, including the center of the bounding box. This helps to reduce jitter.
     """

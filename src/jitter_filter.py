@@ -1,5 +1,7 @@
 from collections import deque
 from typing import Sequence
+import logging
+from statistics import mean
 
 
 class JitterFilter:
@@ -30,7 +32,7 @@ class JitterFilter:
         """
         return (
             len(xs) > 1
-            and abs(sum(a - b for a, b in zip(xs, xs[1:]))) > self._threshold
+            and abs(mean(a - b for a, b in zip(xs, xs[1:]))) > self._threshold
         )
 
     def filter(self, other: tuple[float, float]) -> tuple[float, float]:
@@ -39,6 +41,4 @@ class JitterFilter:
             [i[1] for i in self._prevs]
         ):
             self._anchor = other
-            return other
-        else:
-            return self._anchor
+        return self._anchor
