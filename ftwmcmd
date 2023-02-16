@@ -13,6 +13,8 @@ if [[ $# == 3 && $1 == "increment" && ($2 == "width" || $2 == "height") && ($3 -
   call_method Increment string:$2 int16:$3
 elif [[ $# == 1 && $1 == "arrange" ]]; then
   call_method Arrange
+elif [[ $# == 1 && $1 == "kill" ]]; then
+    call_method Kill
 else
   print_help
 fi

@@ -58,6 +58,9 @@ class Window:
             self.id, ConfigWindow.Height, [max(1, int(other))]
         )
 
+    def kill(self):
+        self.connection.core.KillClient(self.id)
+
 
 def active_window(windows: list[Window]) -> Optional[Window]:
     return next((window for window in windows if window.active), None)

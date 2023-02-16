@@ -36,6 +36,10 @@ class Interface(ServiceInterface):
             new_value = increment((window.id, dimension), current_value, direction)
             setattr(window, dimension, new_value)
 
+    @method()
+    async def Kill(self):
+        active_window(self.windows).kill()
+
 
 async def setup(screen: Screen, windows: list[Window]) -> None:
     bus = await MessageBus().connect()
