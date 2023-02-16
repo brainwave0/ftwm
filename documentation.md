@@ -35,8 +35,6 @@ A subset of X events are currently handled.
 
 When a new window is created, it is placed on the screen according to the layout.
 
-
-
 ## Destroy Notify
 
 The window is simply removed from the list.

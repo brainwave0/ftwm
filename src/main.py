@@ -25,11 +25,11 @@ from os import makedirs
 
 
 def handle_events(
-    connection: Connection, windows: list[Window], screen: Screen, frame_rate: float
+    connection: Connection, windows: list[Window], screen: Screen, rate: float
 ) -> None:
     while True:
         handle_event(connection, windows, screen)
-        time.sleep(1 / frame_rate / 2)
+        time.sleep(1 / rate)
 
 
 def automatically_select_camera(face_detector) -> cv2.VideoCapture:
@@ -84,7 +84,7 @@ async def main() -> None:
     frame_rate = settings.getfloat("DEFAULT", "frame_rate")
     Thread(
         target=handle_events,
-        args=(connection, windows, screen, frame_rate),
+        args=(connection, windows, screen, settings.getfloat("DEFAULT", "event_handling_rate")),
         daemon=True,
     ).start()
     while True:
