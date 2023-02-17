@@ -1,10 +1,10 @@
-from statistics import mean, median
+from statistics import mean
 from collections import deque
 
 
 class MovingAverageFilter:
     def __init__(self, period: int = 2):
-        self.previous_positions = deque([(0, 0)], maxlen=period)
+        self.previous_positions = deque([(0.0, 0.0)], maxlen=period)
 
     def filter(self, value: tuple[float, float]) -> tuple[float, float]:
         self.previous_positions.append(value)

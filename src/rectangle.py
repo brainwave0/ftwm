@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+
 class Rectangle:
     def __init__(
         self, left: float = 0, top: float = 0, width: float = 0, height: float = 0
@@ -125,7 +128,7 @@ class Rectangle:
     def as_list(self) -> list[float]:
         return [self.left, self.top, self.width, self.height]
 
-    def __add__(self, other):
+    def __add__(self, other: Rectangle) -> Rectangle:
         result = Rectangle()
         result.left = min(self.left, other.left)
         result.top = min(self.top, other.top)
@@ -133,7 +136,7 @@ class Rectangle:
         result.height = max(self.bottom, other.bottom) - result.top
         return result
 
-    def overlaps(self, other) -> bool:
+    def overlaps(self, other: Rectangle) -> bool:
         return (
             self.left < other.right
             and other.left < self.right
@@ -141,7 +144,7 @@ class Rectangle:
             and other.top < self.bottom
         )
 
-    def __contains__(self, other) -> bool:
+    def __contains__(self, other: Rectangle) -> bool:
         return (
             self.left <= other.left <= self.right
             and self.left <= other.right <= self.right
@@ -155,10 +158,13 @@ class Rectangle:
     def __repr__(self) -> str:
         return f"Rectangle(left={self.left}, top={self.top}, width={self.width}, height={self.height})"
 
-    def __eq__(self, other) -> bool:
-        return self.as_list() == other.as_list()
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, Rectangle):
+            return self.as_list() == other.as_list()
+        else:
+            return NotImplemented
 
-    def adjacent_to(self, other) -> bool:
+    def adjacent_to(self, other: Rectangle) -> bool:
         return (
             (self.top == other.top)
             != (self.right == other.right)

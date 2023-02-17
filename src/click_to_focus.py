@@ -1,6 +1,6 @@
-import xcffib
+import xcffib  # type: ignore[import]
 from xcffib import CurrentTime, Connection
-from xcffib.xproto import (
+from xcffib.xproto import (  # type: ignore[import]
     ButtonIndex,
     EventMask,
     Grab,

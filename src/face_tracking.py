@@ -1,10 +1,10 @@
 from functools import reduce
 from typing import Optional, Sequence
 
-import cv2
-import mediapipe
-from mediapipe.framework.formats.detection_pb2 import Detection
-import logging
+import cv2  # type: ignore[import]
+import mediapipe  # type: ignore[import]
+from mediapipe.framework.formats.detection_pb2 import Detection  # type: ignore[import]
+from mediapipe.python.solutions.face_detection import FaceDetection  # type: ignore[import]
 
 face_detection = mediapipe.solutions.face_detection
 
@@ -14,7 +14,7 @@ def relative_face_area(detection: Detection) -> float:
     Calculates the area of the face relative to the size of the screen. Used for finding the biggest face which is assumed to be the closest.
     """
     box = detection.location_data.relative_bounding_box
-    return box.width * box.height
+    return box.width * box.height  # type: ignore[no-any-return]
 
 
 def average_point(image: cv2.Mat, detection: Detection) -> tuple[float, float]:
@@ -35,15 +35,19 @@ def average_point(image: cv2.Mat, detection: Detection) -> tuple[float, float]:
     return point[0] / len(points), point[1] / len(points)
 
 
-def face_detections(face_detector, image: cv2.Mat) -> Optional[Sequence[Detection]]:
+def face_detections(
+    face_detector: FaceDetection, image: cv2.Mat
+) -> Optional[Sequence[Detection]]:
     image.flags.writeable = False
     image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
     detections = face_detector.process(image).detections
-    return detections
+    return detections  # type: ignore[no-any-return]
 
 
 # noinspection PyUnresolvedReferences
-def face_delta(face_detector, image: cv2.Mat) -> Optional[tuple[float, float]]:
+def get_face_delta(
+    face_detector: FaceDetection, image: cv2.Mat
+) -> Optional[tuple[float, float]]:
     """
     Gets the nose position relative to the center of the camera frame.
     """

@@ -1,6 +1,5 @@
 from collections import deque
 from typing import Sequence
-import logging
 from statistics import mean
 
 

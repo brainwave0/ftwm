@@ -3,9 +3,9 @@ from typing import Hashable, Dict
 
 class IncrementState:
     def __init__(self) -> None:
-        self.count = 0
-        self.prev_dir = None
-        self.delta = None
+        self.count: int = 0
+        self.prev_dir: int = 0
+        self.delta: float = 0
 
 
 states: Dict[Hashable, IncrementState] = {}

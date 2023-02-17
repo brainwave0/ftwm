@@ -1,7 +1,6 @@
-import xcffib
+import xcffib  # type: ignore[import]
 from xcffib import Connection
-from xcffib.randr import ScreenChangeNotifyEvent
-from xcffib.xproto import (
+from xcffib.xproto import (  # type: ignore[import]
     MapRequestEvent,
     DestroyNotifyEvent,
     ButtonPressEvent,
@@ -9,7 +8,7 @@ from xcffib.xproto import (
     DrawableError,
 )
 
-from .placement import place, arrange
+from .placement import place
 from .screen import Screen
 from .window import Window
 from .click_to_focus import register_for_button_press_events, allow_events, focus_window

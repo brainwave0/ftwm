@@ -1,5 +1,5 @@
-from xcffib import Connection
-from xcffib.xproto import ConfigWindow
+from xcffib import Connection  # type: ignore[import]
+from xcffib.xproto import ConfigWindow  # type: ignore[import]
 
 from .rectangle import Rectangle
 from typing import Optional
@@ -58,7 +58,7 @@ class Window:
             self.id, ConfigWindow.Height, [max(1, int(other))]
         )
 
-    def kill(self):
+    def kill(self) -> None:
         self.connection.core.KillClient(self.id)
 
 
