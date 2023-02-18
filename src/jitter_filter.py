@@ -20,7 +20,7 @@ class JitterFilter:
     ):
         self._prevs: deque[tuple[float, float]] = deque(
             [origin], maxlen=period
-        )  # last [period] recorded values
+        )  # last `period` recorded values
         self._anchor = origin  # reference position to stick to
         self._threshold = threshold
         self._period = period

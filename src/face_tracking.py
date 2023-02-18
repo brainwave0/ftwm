@@ -9,7 +9,7 @@ from mediapipe.python.solutions.face_detection import FaceDetection  # type: ign
 face_detection = mediapipe.solutions.face_detection
 
 
-def relative_face_area(detection: Detection) -> float:
+def get_relative_face_area(detection: Detection) -> float:
     """
     Calculates the area of the face relative to the size of the screen. Used for finding the biggest face which is assumed to be the closest.
     """
@@ -17,7 +17,7 @@ def relative_face_area(detection: Detection) -> float:
     return box.width * box.height  # type: ignore[no-any-return]
 
 
-def average_point(image: cv2.Mat, detection: Detection) -> tuple[float, float]:
+def get_average_point(image: cv2.Mat, detection: Detection) -> tuple[float, float]:
     """
     Averages the detected points for each feature of the face, including the center of the bounding box. This helps to reduce jitter.
     """
@@ -35,7 +35,7 @@ def average_point(image: cv2.Mat, detection: Detection) -> tuple[float, float]:
     return point[0] / len(points), point[1] / len(points)
 
 
-def face_detections(
+def get_face_detections(
     face_detector: FaceDetection, image: cv2.Mat
 ) -> Optional[Sequence[Detection]]:
     image.flags.writeable = False
@@ -52,12 +52,12 @@ def get_face_delta(
     Gets the nose position relative to the center of the camera frame.
     """
     center = (image.shape[1] / 2, image.shape[0] / 2)
-    detections = face_detections(face_detector, image)
+    detections = get_face_detections(face_detector, image)
     if detections:
         closest: mediapipe.framework.formats.detection_pb2.Detection = max(
-            detections, key=lambda x: relative_face_area(x)
+            detections, key=lambda x: get_relative_face_area(x)
         )
-        average_point_ = average_point(image, closest)
-        return average_point_[0] - center[0], average_point_[1] - center[1]
+        average_point = get_average_point(image, closest)
+        return average_point[0] - center[0], average_point[1] - center[1]
     else:
         return None

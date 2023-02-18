@@ -13,7 +13,7 @@ from configparser import ConfigParser
 from pathlib import Path
 from xdg import xdg_config_home  # type: ignore[import]
 from glob import glob
-from .face_tracking import face_detections, get_face_delta
+from .face_tracking import get_face_detections, get_face_delta
 from os import makedirs
 import shutil
 from .jitter_filter import JitterFilter
@@ -65,7 +65,7 @@ def automatically_select_camera(face_detector: FaceDetection) -> cv2.VideoCaptur
         camera = cv2.VideoCapture(index)
         _, frame = camera.read()
         if frame is not None:
-            detections = face_detections(face_detector, frame)
+            detections = get_face_detections(face_detector, frame)
             if detections:
                 return camera
         camera.release()

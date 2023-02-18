@@ -20,8 +20,7 @@ class Window:
         self.id = id
         self.virtual = Rectangle()
         self.virtual.position = virtual_position
-        if size:
-            self.virtual.size = size
+        self.virtual.size = size
         self.active = False
 
     @property
@@ -62,5 +61,5 @@ class Window:
         self.connection.core.KillClient(self.id)
 
 
-def active_window(windows: list[Window]) -> Optional[Window]:
+def get_active_window(windows: list[Window]) -> Optional[Window]:
     return next((window for window in windows if window.active), None)

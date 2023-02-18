@@ -5,10 +5,10 @@ from dbus_next.service import ServiceInterface, method  # type: ignore[import]
 from src.increment import increment
 from src.placement import arrange
 from src.screen import Screen
-from src.window import Window, active_window
+from src.window import Window, get_active_window
 
 no_window_error = DBusError(
-    "com.github.brainwave0.ftwm.error.NoWindow", "There is no window."
+    "com.github.brainwave0.ftwm.error.NoWindow", "There is no active window."
 )
 
 
@@ -24,7 +24,7 @@ class Interface(ServiceInterface):  # type: ignore[misc]
 
     @method()  # type: ignore[misc]
     async def Increment(self, dimension: "s", direction: "n"):  # type: ignore[no-untyped-def, name-defined]
-        window = active_window(self.windows)
+        window = get_active_window(self.windows)
         if dimension not in ["width", "height"]:
             raise DBusError(
                 "com.github.brainwave0.ftwm.error.InvalidInput",
@@ -33,10 +33,7 @@ class Interface(ServiceInterface):  # type: ignore[misc]
         elif direction not in [-1, 1]:
             raise no_window_error
         elif window is None:
-            raise DBusError(
-                "com.github.brainwave0.ftwm.error.NoWindow",
-                f"There is no active window.",
-            )
+            raise no_window_error
         else:
             current_value = getattr(window, dimension)
             new_value = increment((window.id, dimension), current_value, direction)
@@ -44,7 +41,7 @@ class Interface(ServiceInterface):  # type: ignore[misc]
 
     @method()
     async def Kill(self):  # type: ignore[no-untyped-def]
-        window = active_window(self.windows)
+        window = get_active_window(self.windows)
         if window is None:
             raise no_window_error
         else:

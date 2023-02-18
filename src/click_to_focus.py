@@ -11,7 +11,7 @@ from xcffib.xproto import (  # type: ignore[import]
     InputFocus,
 )
 
-from src.window import active_window, Window
+from src.window import get_active_window, Window
 
 
 def register_for_button_press_events(connection: Connection, window_id: int) -> None:
@@ -40,18 +40,20 @@ def allow_events(connection: xcffib.Connection) -> None:
 
 
 def focus_window(
-    connection: xcffib.Connection, window_id: int, windows: list[Window]
+    connection: xcffib.Connection, event_window_id: int, windows: list[Window]
 ) -> None:
     """
     Focuses the given window.
     """
-    active_window_ = active_window(windows)
-    if active_window_ is None or active_window_.id != window_id:
+    active_window = get_active_window(windows)
+    if active_window is None or active_window.id != event_window_id:
         # there is no active window, or this window has not been focused yet
 
-        connection.core.SetInputFocus(InputFocus.PointerRoot, window_id, CurrentTime)
+        connection.core.SetInputFocus(
+            InputFocus.PointerRoot, event_window_id, CurrentTime
+        )
         for window in windows:
-            if window.id == window_id:
+            if window.id == event_window_id:
                 window.active = True
             else:
                 window.active = False

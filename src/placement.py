@@ -56,7 +56,7 @@ def place(screen: Screen, windows: list[Window], window: Window) -> None:
                 if any(spot.overlaps(window_.virtual) for window_ in windows):
                     # it would overlap at least one existing window, so skip
                     continue
-                new_score = score(spot, screen)
+                new_score = get_score(spot, screen)
                 if best_spot is None or new_score > best_score:
                     # update the best spot and its score
                     best_spot = spot
@@ -68,13 +68,7 @@ def place(screen: Screen, windows: list[Window], window: Window) -> None:
     screen.grid.set_range(window.virtual, window)
 
 
-def distance(point_a: tuple[float, float], point_b: tuple[float, float]) -> float:
-    dx = point_b[0] - point_a[0]
-    dy = point_b[1] - point_a[1]
-    return math.sqrt(dx**2 + dy**2)
-
-
-def score(spot: Rectangle, screen: Screen) -> float:
+def get_score(spot: Rectangle, screen: Screen) -> float:
     horizontal_score = abs(spot.center[0] - screen.geometry.center[0]) / (
         screen.geometry.width / 2
     )
@@ -82,22 +76,6 @@ def score(spot: Rectangle, screen: Screen) -> float:
         screen.geometry.height / 2
     )
     return 1 / (horizontal_score + vertical_score + 1)
-
-
-def get_gravity(screen: Screen, spot: Rectangle) -> str:
-    gravities = [
-        "top_center",
-        "top_right",
-        "right_center",
-        "bottom_right",
-        "bottom_center",
-        "bottom_left",
-        "left_center",
-        "top_left",
-    ]
-    return min(
-        gravities, key=lambda g: distance(getattr(spot, g), screen.geometry.center)
-    )
 
 
 def arrange(screen: Screen, windows: list[Window]) -> None:

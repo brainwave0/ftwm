@@ -46,7 +46,6 @@ class DynamicGrid:
                     self._array, index, values, axis=0 if dim == 1 else 1
                 )
 
-    # noinspection PyTypeChecker
     def set_range(self, rectangle: Rectangle, obj: Any) -> None:
         """
         Set the area given by `rectangle` to contain `obj`. The grid is split at each edge of the rectangle, and `obj`

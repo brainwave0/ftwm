@@ -5,7 +5,7 @@ import cv2  # type: ignore[import]
 from xcffib import connect, Connection  # type: ignore[import]
 
 from .event import handle_event
-from .face_tracking import get_face_delta, face_detections
+from .face_tracking import get_face_delta, get_face_detections
 from .jitter_filter import JitterFilter
 from .moving_average_filter import MovingAverageFilter
 from .misc import (
