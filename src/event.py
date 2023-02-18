@@ -12,50 +12,44 @@ from .placement import place
 from .screen import Screen
 from .window import Window
 from .click_to_focus import register_for_button_press_events, allow_events, focus_window
+from .state import State
 
 
-def map_request(
-    connection: Connection,
-    event: MapRequestEvent,
-    windows: list[Window],
-    screen: Screen,
-) -> None:
-    assert not connection.invalid()
-    window = Window(connection, event.window)
-    geometry = connection.core.GetGeometry(window.id).reply()
+def map_request(state: State, event: MapRequestEvent) -> None:
+    assert not state.connection.invalid()
+    window = Window(state, event.window)
+    geometry = state.connection.core.GetGeometry(window.id).reply()
     window.virtual.size = (geometry.width, geometry.height)
-    place(screen, windows, window)
-    windows.append(window)
-    connection.core.MapWindow(event.window)
-    register_for_button_press_events(connection, event.window)
+    place(state, window)
+    state.windows.append(window)
+    state.connection.core.MapWindow(event.window)
+    register_for_button_press_events(state, event.window)
 
 
-def destroy_notify(event: DestroyNotifyEvent, windows: list[Window]) -> None:
+def destroy_notify(state: State, event: DestroyNotifyEvent) -> None:
     try:
-        window = next(i for i in windows if i.id == event.window)
-        windows.remove(window)
+        window = next(i for i in state.windows if i.id == event.window)
+        state.windows.remove(window)
     except StopIteration:
         pass
 
 
-def button_press(
-    connection: Connection, event: ButtonPressEvent, windows: list[Window]
-) -> None:
-    if any(event.event == window.id for window in windows):
-        focus_window(connection, event.event, windows)
-    allow_events(connection)
+def button_press(state: State, event: ButtonPressEvent) -> None:
+    if any(event.event == window.id for window in state.windows):
+        focus_window(state, event.event)
+    allow_events(state)
 
 
-def handle_event(connection: Connection, windows: list[Window], screen: Screen) -> None:
+def handle_event(state: State) -> None:
     try:
-        event = connection.poll_for_event()
+        event = state.connection.poll_for_event()
         if event is not None:
             if isinstance(event, MapRequestEvent):
-                map_request(connection, event, windows, screen)
+                map_request(state, event)
             elif isinstance(event, DestroyNotifyEvent):
-                destroy_notify(event, windows)
+                destroy_notify(state, event)
             elif isinstance(event, ButtonPressEvent):
-                button_press(connection, event, windows)
+                button_press(state, event)
             else:
                 pass
     except WindowError:

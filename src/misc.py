@@ -1,4 +1,3 @@
-from typing import Iterable
 
 import mediapipe  # type: ignore[import]
 from xcffib import Connection  # type: ignore[import]
@@ -20,18 +19,18 @@ from .jitter_filter import JitterFilter
 from .moving_average_filter import MovingAverageFilter
 import asyncio
 from mediapipe.python.solutions.face_detection import FaceDetection  # type: ignore[import]
+from .state import State
 
 
-def pan(
-    windows: Iterable[Window], delta: tuple[float, float], scale: float = 1
-) -> None:
+def pan(state: State, delta: tuple[float, float]) -> None:
     """
     Pans windows.
 
     delta: How far to move each window from their virtual positions.
     scale: Multiplied with delta to affect panning sensitivity.
     """
-    for window in windows:
+    scale = state.settings.getfloat("DEFAULT", "scale")
+    for window in state.windows:
         window.position = (
             int(window.virtual.position[0] + delta[0] * scale),
             int(window.virtual.position[1] + delta[1] * scale),
@@ -73,36 +72,37 @@ def automatically_select_camera(face_detector: FaceDetection) -> cv2.VideoCaptur
 
 
 def get_and_set_up_camera(
-    settings: ConfigParser, face_detector: FaceDetection
+    state: State, face_detector: FaceDetection
 ) -> cv2.VideoCapture:
     camera = (
-        cv2.VideoCapture(settings.getint("Camera", "index"))
-        if "index" in settings["Camera"]
+        cv2.VideoCapture(state.settings.getint("Camera", "index"))
+        if "index" in state.settings["Camera"]
         else automatically_select_camera(face_detector)
     )
-    camera.set(cv2.CAP_PROP_FPS, settings.getint("Camera", "fps"))
-    if "capture_width" in settings["Camera"] and "capture_height" in settings["Camera"]:
-        camera.set(cv2.CAP_PROP_FRAME_WIDTH, settings.getint("Camera", "capture_width"))
+    camera.set(cv2.CAP_PROP_FPS, state.settings.getint("Camera", "fps"))
+    if (
+        "capture_width" in state.settings["Camera"]
+        and "capture_height" in state.settings["Camera"]
+    ):
         camera.set(
-            cv2.CAP_PROP_FRAME_WIDTH, settings.getint("Camera", "capture_height")
+            cv2.CAP_PROP_FRAME_WIDTH, state.settings.getint("Camera", "capture_width")
+        )
+        camera.set(
+            cv2.CAP_PROP_FRAME_WIDTH, state.settings.getint("Camera", "capture_height")
         )
     return camera
 
 
-async def pan_windows_with_face(
-    connection: Connection,
-    windows: list[Window],
-    settings: ConfigParser,
-    face_detector: FaceDetection,
-) -> None:
-    scale = settings.getfloat("DEFAULT", "scale")
-    camera = get_and_set_up_camera(settings, face_detector)
+async def pan_windows_with_face(state: State) -> None:
+    face_detector = FaceDetection(model_selection=0, min_detection_confidence=0)
+    scale = state.settings.getfloat("DEFAULT", "scale")
+    camera = get_and_set_up_camera(state, face_detector)
     jitter_filter = JitterFilter(
-        threshold=settings.getfloat("Jitter Filter", "threshold") * scale,
-        period=settings.getint("Jitter Filter", "period"),
+        threshold=state.settings.getfloat("Jitter Filter", "threshold") * scale,
+        period=state.settings.getint("Jitter Filter", "period"),
     )
     moving_average_filter = MovingAverageFilter(
-        period=settings.getint("DEFAULT", "moving_average_period")
+        period=state.settings.getint("DEFAULT", "moving_average_period")
     )
     while True:
         got_frame, frame = camera.read()
@@ -112,6 +112,6 @@ async def pan_windows_with_face(
             window_delta = (window_delta[0] * scale, -window_delta[1] * scale)
             window_delta = moving_average_filter.filter(window_delta)
             window_delta = jitter_filter.filter(window_delta)
-            pan(windows, window_delta)
-        connection.flush()
-        await asyncio.sleep(1 / settings.getfloat("DEFAULT", "frame_rate"))
+            pan(state, window_delta)
+        state.connection.flush()
+        await asyncio.sleep(1 / state.settings.getfloat("DEFAULT", "frame_rate"))

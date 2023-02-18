@@ -10,16 +10,16 @@ from xcffib.xproto import (  # type: ignore[import]
     Allow,
     InputFocus,
 )
-
+from .state import State
 from src.window import get_active_window, Window
 
 
-def register_for_button_press_events(connection: Connection, window_id: int) -> None:
-    connection.core.UngrabButton(ButtonIndex.Any, window_id, Grab.Any)
+def register_for_button_press_events(state: State, window_id: int) -> None:
+    state.connection.core.UngrabButton(ButtonIndex.Any, window_id, Grab.Any)
 
     # GrabButton can register the window for button press events, but it blocks clicks to other windows, so allow_events
     # is used later.
-    connection.core.GrabButton(
+    state.connection.core.GrabButton(
         1,
         window_id,
         EventMask.ButtonPress,
@@ -32,27 +32,25 @@ def register_for_button_press_events(connection: Connection, window_id: int) -> 
     )
 
 
-def allow_events(connection: xcffib.Connection) -> None:
+def allow_events(state: State) -> None:
     """
     Allows clicks to other windows when button press events are grabbed by another window.
     """
-    connection.core.AllowEvents(Allow.ReplayPointer, CurrentTime)
+    state.connection.core.AllowEvents(Allow.ReplayPointer, CurrentTime)
 
 
-def focus_window(
-    connection: xcffib.Connection, event_window_id: int, windows: list[Window]
-) -> None:
+def focus_window(state: State, event_window_id: int) -> None:
     """
     Focuses the given window.
     """
-    active_window = get_active_window(windows)
+    active_window = get_active_window(state)
     if active_window is None or active_window.id != event_window_id:
         # there is no active window, or this window has not been focused yet
 
-        connection.core.SetInputFocus(
+        state.connection.core.SetInputFocus(
             InputFocus.PointerRoot, event_window_id, CurrentTime
         )
-        for window in windows:
+        for window in state.windows:
             if window.id == event_window_id:
                 window.active = True
             else:

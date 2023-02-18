@@ -22,36 +22,30 @@ import time
 import src.dbus as dbus
 from xdg import xdg_config_home  # type: ignore[import]
 from mediapipe.python.solutions.face_detection import FaceDetection  # type: ignore[import]
+from .state import State
 
 
-def handle_events(
-    connection: Connection, windows: list[Window], screen: Screen, rate: float
-) -> None:
+def handle_events(state: State) -> None:
     while True:
-        handle_event(connection, windows, screen)
-        time.sleep(1 / rate)
+        handle_event(state)
+        time.sleep(1 / state.settings.getfloat("DEFAULT", "event_handling_rate"))
 
 
 async def main() -> None:
-    face_detector = FaceDetection(model_selection=0, min_detection_confidence=0)
     settings = get_settings()
     connection = connect(environ["DISPLAY"])
     register_wm(connection)
     windows: list[Window] = []
     root = connection.get_setup().roots[0]
     screen = Screen(root.width_in_pixels, root.height_in_pixels)
-    await dbus.setup(screen, windows)
+    state = State(settings, connection, windows, screen)
+    await dbus.setup(state)
     Thread(
         target=handle_events,
-        args=(
-            connection,
-            windows,
-            screen,
-            settings.getfloat("DEFAULT", "event_handling_rate"),
-        ),
+        args=(state,),
         daemon=True,
     ).start()
-    await pan_windows_with_face(connection, windows, settings, face_detector)
+    await pan_windows_with_face(state)
 
 
 asyncio.run(main())

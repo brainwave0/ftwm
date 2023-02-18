@@ -3,20 +3,21 @@ from xcffib.xproto import ConfigWindow  # type: ignore[import]
 
 from .rectangle import Rectangle
 from typing import Optional
+from .state import State
 
 
 class Window:
     def __init__(
         self,
-        connection: Connection,
+        state: State,
         id: int,
         virtual_position: tuple[int, int] = (0, 0),
         size: tuple[int, int] = (0, 0),
     ) -> None:
-        assert not connection.invalid()
+        assert not state.connection.invalid()
         assert size[0] >= 0 and size[1] >= 0
         self._position = (0, 0)
-        self.connection = connection
+        self.state = state
         self.id = id
         self.virtual = Rectangle()
         self.virtual.position = virtual_position
@@ -30,7 +31,7 @@ class Window:
     @position.setter
     def position(self, other: tuple[int, int]) -> None:
         if self._position != other:
-            self.connection.core.ConfigureWindow(
+            self.state.connection.core.ConfigureWindow(
                 self.id, ConfigWindow.X | ConfigWindow.Y, list(other)
             )
             self._position = other
@@ -42,7 +43,7 @@ class Window:
     @width.setter
     def width(self, other: int) -> None:
         self.virtual.width = other
-        self.connection.core.ConfigureWindow(
+        self.state.connection.core.ConfigureWindow(
             self.id, ConfigWindow.Width, [max(1, int(other))]
         )
 
@@ -53,13 +54,13 @@ class Window:
     @height.setter
     def height(self, other: int) -> None:
         self.virtual.height = other
-        self.connection.core.ConfigureWindow(
+        self.state.connection.core.ConfigureWindow(
             self.id, ConfigWindow.Height, [max(1, int(other))]
         )
 
     def kill(self) -> None:
-        self.connection.core.KillClient(self.id)
+        self.state.connection.core.KillClient(self.id)
 
 
-def get_active_window(windows: list[Window]) -> Optional[Window]:
-    return next((window for window in windows if window.active), None)
+def get_active_window(state: State) -> Optional[Window]:
+    return next((window for window in state.windows if window.active), None)

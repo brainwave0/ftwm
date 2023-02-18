@@ -3,9 +3,10 @@ from dbus_next.aio import MessageBus  # type: ignore[import]
 from dbus_next.service import ServiceInterface, method  # type: ignore[import]
 
 from src.increment import increment
-from src.placement import arrange
+from src.placement import arrange_windows
 from src.screen import Screen
 from src.window import Window, get_active_window
+from .state import State
 
 no_window_error = DBusError(
     "com.github.brainwave0.ftwm.error.NoWindow", "There is no active window."
@@ -13,18 +14,17 @@ no_window_error = DBusError(
 
 
 class Interface(ServiceInterface):  # type: ignore[misc]
-    def __init__(self, screen: Screen, windows: list[Window]) -> None:
+    def __init__(self, state: State) -> None:
         super().__init__("com.github.brainwave0.ftwm.interface")
-        self.screen = screen
-        self.windows = windows
+        self.state = state
 
     @method()
     async def Arrange(self):  # type: ignore[no-untyped-def]
-        arrange(self.screen, self.windows)
+        arrange_windows(self.state)
 
     @method()  # type: ignore[misc]
     async def Increment(self, dimension: "s", direction: "n"):  # type: ignore[no-untyped-def, name-defined]
-        window = get_active_window(self.windows)
+        window = get_active_window(self.state)
         if dimension not in ["width", "height"]:
             raise DBusError(
                 "com.github.brainwave0.ftwm.error.InvalidInput",
@@ -41,15 +41,15 @@ class Interface(ServiceInterface):  # type: ignore[misc]
 
     @method()
     async def Kill(self):  # type: ignore[no-untyped-def]
-        window = get_active_window(self.windows)
+        window = get_active_window(self.state)
         if window is None:
             raise no_window_error
         else:
             window.kill()
 
 
-async def setup(screen: Screen, windows: list[Window]) -> None:
+async def setup(state: State) -> None:
     bus = await MessageBus().connect()
-    interface = Interface(screen, windows)
+    interface = Interface(state)
     bus.export("/com/github/brainwave0/ftwm/interface", interface)
     await bus.request_name("com.github.brainwave0.ftwm")
