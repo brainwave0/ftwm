@@ -13,6 +13,7 @@ from .screen import Screen
 from .window import Window
 from .click_to_focus import register_for_button_press_events, allow_events, focus_window
 from .state import State
+import logging
 
 
 def map_request(state: State, event: MapRequestEvent) -> None:
@@ -20,8 +21,9 @@ def map_request(state: State, event: MapRequestEvent) -> None:
     window = Window(state, event.window)
     geometry = state.connection.core.GetGeometry(window.id).reply()
     window.virtual.size = (geometry.width, geometry.height)
-    place(state, window)
+    place(state, state.windows, window)
     state.windows.append(window)
+    logging.error("mapping window")
     state.connection.core.MapWindow(event.window)
     register_for_button_press_events(state, event.window)
 

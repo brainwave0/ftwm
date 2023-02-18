@@ -8,12 +8,12 @@ from .window import Window
 from .state import State
 
 
-def place(state: State, window: Window) -> None:
+def place(state: State, windows: list[Window], window: Window) -> None:
     """
     Places the window on the virtual desktop as close to the center as possible without overlapping other windows.
     """
-    assert window not in state.windows
-    if not state.windows:
+    assert window not in windows
+    if not windows:
         # the first window goes in the center
         window.virtual.center = state.screen.geometry.center
         state.screen.grid.set_range(window.virtual, window)
@@ -82,5 +82,5 @@ def arrange_windows(state: State) -> None:
     state.screen.grid = DynamicGrid()
     tmp_windows: list[Window] = []
     for window in sorted(state.windows, key=lambda x: x.virtual.area(), reverse=True):
-        place(state, window)
+        place(state, tmp_windows, window)
         tmp_windows.append(window)

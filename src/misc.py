@@ -29,11 +29,10 @@ def pan(state: State, delta: tuple[float, float]) -> None:
     delta: How far to move each window from their virtual positions.
     scale: Multiplied with delta to affect panning sensitivity.
     """
-    scale = state.settings.getfloat("DEFAULT", "scale")
     for window in state.windows:
         window.position = (
-            int(window.virtual.position[0] + delta[0] * scale),
-            int(window.virtual.position[1] + delta[1] * scale),
+            int(window.virtual.position[0] + delta[0]),
+            int(window.virtual.position[1] + delta[1]),
         )
 
 
