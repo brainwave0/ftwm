@@ -21,7 +21,7 @@ def increment(key: Hashable, number: float, direction: int) -> float:
     else:
         state.count = 0
 
-    if state.delta is None:
+    if state.delta == 0:
         # initialize delta to 1 / 5 of original value
         state.delta = number / 5
     else:
