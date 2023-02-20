@@ -20,6 +20,7 @@ from .moving_average_filter import MovingAverageFilter
 import asyncio
 from mediapipe.python.solutions.face_detection import FaceDetection  # type: ignore[import]
 from .state import State
+from .camera import Camera
 
 
 def pan(state: State, delta: tuple[float, float]) -> None:
@@ -56,7 +57,7 @@ def get_settings() -> ConfigParser:
     return settings
 
 
-def automatically_select_camera(face_detector: FaceDetection) -> cv2.VideoCapture:
+def auto_camera_index(face_detector: FaceDetection) -> cv2.VideoCapture:
     for index in sorted(
         int(device.replace("/dev/video", "")) for device in glob("/dev/video*")
     ):
@@ -65,7 +66,8 @@ def automatically_select_camera(face_detector: FaceDetection) -> cv2.VideoCaptur
         if frame is not None:
             detections = get_face_detections(face_detector, frame)
             if detections:
-                return camera
+                camera.release()
+                return index
         camera.release()
     return None
 
@@ -73,22 +75,19 @@ def automatically_select_camera(face_detector: FaceDetection) -> cv2.VideoCaptur
 def get_and_set_up_camera(
     state: State, face_detector: FaceDetection
 ) -> cv2.VideoCapture:
-    camera = (
-        cv2.VideoCapture(state.settings.getint("Camera", "index"))
-        if "index" in state.settings["Camera"]
-        else automatically_select_camera(face_detector)
-    )
-    camera.set(cv2.CAP_PROP_FPS, state.settings.getint("Camera", "fps"))
+    fps = state.settings.getint("Camera", "fps")
     if (
         "capture_width" in state.settings["Camera"]
         and "capture_height" in state.settings["Camera"]
     ):
-        camera.set(
-            cv2.CAP_PROP_FRAME_WIDTH, state.settings.getint("Camera", "capture_width")
-        )
-        camera.set(
-            cv2.CAP_PROP_FRAME_WIDTH, state.settings.getint("Camera", "capture_height")
-        )
+        size = (state.settings.getint("Camera", "capture_width"), state.settings.getint("Camera", "capture_height"))
+    else:
+        size = None
+    camera = (
+        Camera(state.settings.getint("Camera", "index"), size, fps)
+        if "index" in state.settings["Camera"]
+        else Camera(auto_camera_index(face_detector), size, fps)
+    )
     return camera
 
 
@@ -104,13 +103,14 @@ async def pan_windows_with_face(state: State) -> None:
         period=state.settings.getint("DEFAULT", "moving_average_period")
     )
     while True:
-        got_frame, frame = camera.read()
-        face_delta = get_face_delta(face_detector, frame)
-        if face_delta:
-            window_delta = face_delta
-            window_delta = (window_delta[0] * scale, -window_delta[1] * scale)
-            window_delta = moving_average_filter.filter(window_delta)
-            window_delta = jitter_filter.filter(window_delta)
-            pan(state, window_delta)
-        state.connection.flush()
+        frame = camera.get_frame()
+        if frame is not None:
+            face_delta = get_face_delta(face_detector, frame)
+            if face_delta:
+                window_delta = face_delta
+                window_delta = (window_delta[0] * scale, -window_delta[1] * scale)
+                window_delta = moving_average_filter.filter(window_delta)
+                window_delta = jitter_filter.filter(window_delta)
+                pan(state, window_delta)
+                state.connection.flush()
         await asyncio.sleep(1 / state.settings.getfloat("DEFAULT", "frame_rate"))
