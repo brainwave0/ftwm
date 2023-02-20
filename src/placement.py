@@ -18,7 +18,7 @@ def place(state: State, windows: list[Window], window: Window) -> None:
         window.virtual.center = state.screen.geometry.center
         state.screen.grid.set_range(window.virtual, window)
     else:
-        used_area = reduce(lambda a, b: a + b, map(lambda x: x.virtual, state.windows))
+        used_area = reduce(lambda a, b: a + b, map(lambda x: x.virtual, windows))
 
         top = used_area.top - window.virtual.height
         right = used_area.right + window.virtual.width
@@ -53,7 +53,7 @@ def place(state: State, windows: list[Window], window: Window) -> None:
                 gravity_point = getattr(cell, gravity)
                 setattr(spot, gravity, gravity_point)
 
-                if any(spot.overlaps(window_.virtual) for window_ in state.windows):
+                if any(spot.overlaps(window_.virtual) for window_ in windows):
                     # it would overlap at least one existing window, so skip
                     continue
                 new_score = get_score(state, spot)
