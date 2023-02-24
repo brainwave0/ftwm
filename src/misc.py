@@ -1,4 +1,3 @@
-
 import mediapipe  # type: ignore[import]
 from xcffib import Connection  # type: ignore[import]
 from xcffib.xproto import (  # type: ignore[import]
@@ -80,7 +79,10 @@ def get_and_set_up_camera(
         "capture_width" in state.settings["Camera"]
         and "capture_height" in state.settings["Camera"]
     ):
-        size = (state.settings.getint("Camera", "capture_width"), state.settings.getint("Camera", "capture_height"))
+        size = (
+            state.settings.getint("Camera", "capture_width"),
+            state.settings.getint("Camera", "capture_height"),
+        )
     else:
         size = None
     camera = (

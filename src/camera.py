@@ -2,8 +2,12 @@ from typing import Optional
 import cv2
 from threading import Thread
 import time
+
+
 class Camera:
-    def __init__(self, index: int, frame_size: Optional[tuple[int, int]]=None, fps: float=60) -> None:
+    def __init__(
+        self, index: int, frame_size: Optional[tuple[int, int]] = None, fps: float = 60
+    ) -> None:
         self._video_capture = cv2.VideoCapture(index)
         self._frame: Optional[cv2.Mat] = None
         self._previous_frame: Optional[cv2.Mat] = None
