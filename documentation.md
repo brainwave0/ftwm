@@ -19,13 +19,17 @@ The `Increment` action is for increasing or decreasing the size of the focused w
 
 Re-arranges the windows according to the rules of the layout. Windows are placed in order from largest to smallest.
 
+## Kill
+
+Kills the active window.
+
 # LAYOUT
 
 New windows are placed as close to the center of the screen as possible without overlapping. Also, the screen aspect ratio is taken into account; depending on the screen, the windows may be arranged more vertically or horizontally.
 
 # FACE TRACKING
 
-Panning of the screen is based on the location of the face in the video feed. If there are multiple faces, the one nearest to the screen is tracked. It is assumed that the nearest face is the largest one in the camera frame.
+Panning of the screen is based on the location of the face in the video feed. If there are multiple faces, the one nearest to the screen is tracked. It is assumed that the nearest face is the largest one in the camera frame. Works better with good lighting, but okay in low light.
 
 # EVENTS
 
@@ -49,4 +53,4 @@ The application can be controlled from the command line. It is just a shell scri
 
 # CONFIGURATION
 
-The application can be configured using the `settings.ini` file, by default located in `~/.config/ftwm/`. Details on specific options can be found in the file.
+The application can be configured using the `settings.ini` file, by default located in `~/.config/ftwm/`. Details on specific options can be found in the file. The file is read when the window manager starts up.
