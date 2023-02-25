@@ -6,7 +6,7 @@ An experimental window manager with which you can pan a virtual desktop by movin
 
 ## Status
 
-It's somewhat usable. Some critical features are missing, like being able to close windows, or fullscreen handling. See below for limitations and known issues.
+It's somewhat usable. Some critical features are missing, like fullscreen handling. See below for limitations and known issues.
 
 ## Features
 
@@ -28,10 +28,6 @@ It's somewhat usable. Some critical features are missing, like being able to clo
 
 The following issues include bugs and missing features that I plan to fix.
 
-### framerates
-
-Depending on your webcam, you may experience low framerates in low light. This is because exposure duration is increased to compensate. In other words, it takes longer to capture each frame.
-
 ### fullscreen applications
 
 Fullscreen applications may not take up the whole screen, nor will they be static.
@@ -42,11 +38,11 @@ Windows opened before the application has finished loading are unmanaged. As a w
 
 ### window placement
 
-New windows may be difficult to find. Currently all new windows are placed wherever there is room, and you have to look around to find them. Also, there is a bug where empty space is counted as occupied, causing windows to be placed in sub-optimal locations.
+New windows may be difficult to find. Currently all new windows are placed wherever there is room, and if there's a lot of windows on the screen already, you'll have to look around to find them. Also, there is a bug where empty space is counted as occupied, causing windows to be placed in sub-optimal locations. As a workaround, when this happens, just re-arrange the windows.
 
 ### cpu usage
 
-It uses up to about 12% of the CPU on my machine, or about 97% of a single core.
+It uses up to about 17% of the CPU on my machine, or about 1.36 cores.
 
 ### window resizing
 
@@ -58,24 +54,52 @@ The `settings.ini` file, located by default in `~/.config/ftwm`, includes option
 
 ## Roadmap
 
-1. Window-closing functionality
+1. Fullscreen handling
 
-2. Fullscreen handling
+2. Monocle layout
 
-3. Monocle layout
+3. Panning toggle action
 
-4. Compensate for low camera framerates
+4. Close-all-windows action
 
-5. Handle floating windows
+5. Calibration: re-center the windows so you don't have to adjust the screen
 
-6. Fix window placement
+6. Mouse-only panning mode, in case you can't sit still
 
-7. Manage existing windows on startup
+7. Remember window sizes
 
-8. Point to new windows
+8. Handle floating windows
 
-9. Focus new windows
+9. Hot reload settings
 
-10. Reduce CPU usage
+10. Zoom in and out with your face (maybe)
 
-11. Improve window-resizing
+11. Fix window placement
+
+12. Manage existing windows on startup
+
+13. Support _NET_ACTIVE_WINDOW
+
+14. Installer
+
+15. Point to new windows
+
+16. Focus new windows
+
+17. Reduce CPU usage
+
+18. Improve window-resizing
+
+19. Dock support
+
+## Change Log
+
+### Version 3
+
+- Add a setting for changing the event handling rate
+
+- Window-killing functionality
+
+- Compensate for low camera framerates
+
+- Some refactoring
