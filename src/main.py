@@ -23,12 +23,10 @@ import src.dbus as dbus
 from xdg import xdg_config_home  # type: ignore[import]
 from mediapipe.python.solutions.face_detection import FaceDetection  # type: ignore[import]
 from .state import State
-
-
-def handle_events(state: State) -> None:
-    while True:
-        handle_event(state)
-        time.sleep(1 / state.settings.getfloat("DEFAULT", "event_handling_rate"))
+import reactivex
+from typing import Callable, Any
+from .event import push_x_events
+from reactivex.scheduler.eventloop import AsyncIOScheduler
 
 
 async def main() -> None:
@@ -38,13 +36,15 @@ async def main() -> None:
     windows: list[Window] = []
     root = connection.get_setup().roots[0]
     screen = Screen(root.width_in_pixels, root.height_in_pixels)
-    state = State(settings, connection, windows, screen)
+    tasks: set[asyncio.Task[None]] = set()
+    state = State(settings, connection, windows, screen, tasks)
     await dbus.setup(state)
-    Thread(
-        target=handle_events,
-        args=(state,),
-        daemon=True,
-    ).start()
+    reactivex.create(
+        push_x_events(state, state.settings.getfloat("DEFAULT", "event_handling_rate"))
+    ).subscribe(
+        on_next=lambda x: handle_event(state, x),
+        scheduler=AsyncIOScheduler(asyncio.get_running_loop()),
+    )
     await pan_windows_with_face(state)
 
 

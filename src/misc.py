@@ -110,9 +110,8 @@ async def pan_windows_with_face(state: State) -> None:
             face_delta = get_face_delta(face_detector, frame)
             if face_delta:
                 window_delta = face_delta
-                window_delta = (window_delta[0] * scale, -window_delta[1] * scale)
                 window_delta = moving_average_filter.filter(window_delta)
                 window_delta = jitter_filter.filter(window_delta)
+                window_delta = (window_delta[0] * scale, -window_delta[1] * scale)
                 pan(state, window_delta)
-                state.connection.flush()
         await asyncio.sleep(1 / state.settings.getfloat("DEFAULT", "frame_rate"))
