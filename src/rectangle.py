@@ -163,11 +163,3 @@ class Rectangle:
             return self.as_list() == other.as_list()
         else:
             return NotImplemented
-
-    def adjacent_to(self, other: Rectangle) -> bool:
-        return (
-            (self.top == other.top)
-            != (self.right == other.right)
-            != (self.bottom == other.bottom)
-            != (self.left == other.left)
-        )

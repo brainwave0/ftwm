@@ -28,4 +28,5 @@ def increment(key: Hashable, number: float, direction: int) -> float:
         # halve the delta if count is zero, multiply it by 1.25 if count is one, and double it if count >= 2
         state.delta *= 0.5 + min(2, state.count) * 0.75
     state.prev_dir = direction
+    states[key] = state
     return number + state.delta * direction
