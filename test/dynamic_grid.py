@@ -1,3 +1,7 @@
+from src.dynamic_grid import DynamicGrid
+from src.rectangle import Rectangle
+
+
 def test_split():
     grid = DynamicGrid()
     assert list(grid) == []
