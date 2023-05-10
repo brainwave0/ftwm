@@ -31,9 +31,10 @@ class Interface(ServiceInterface):  # type: ignore[misc]
                 f'Dimension must be "width" or "height", but "{dimension}" was provided.',
             )
         elif direction not in [-1, 1]:
-            raise no_window_error
-        elif window is None:
-            raise no_window_error
+            raise DBusError(
+                "com.github.brainwave0.ftwm.error.InvalidInput",
+                f'Direction must be -1 or 1, but "{direction}" was provided.',
+            )
         else:
             current_value = getattr(window, dimension)
             new_value = increment((window.id, dimension), current_value, direction)

@@ -25,7 +25,10 @@ class Camera:
 
     def _set_frames(self) -> None:
         while True:
-            if self._frame is None:
-                success, self._frame = self._video_capture.read()
-                if not success:
-                    raise RuntimeError("Failed to get frame from camera.")
+            self._set_frame()
+
+    def _set_frame(self):
+        if self._frame is None:
+            success, self._frame = self._video_capture.read()
+            if not success:
+                raise RuntimeError("Failed to get frame from camera.")

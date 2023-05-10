@@ -48,7 +48,7 @@ class DynamicGrid:
 
     def set_range(self, rectangle: Rectangle, obj: Any) -> None:
         """
-        Set the area given by `rectangle` to contain `obj`. The grid is split at each edge of the rectangle, and `obj`
+        Set the area given by `rectangle` to contain `obj`. The grid is split at each edge of the rectangle, and `obj` is
         copied over the cells contained in it.
         """
         self.split(rectangle.left, 0)
