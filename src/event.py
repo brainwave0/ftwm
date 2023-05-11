@@ -14,10 +14,6 @@ from .window import Window
 from .click_to_focus import register_for_button_press_events, allow_events, focus_window
 from .state import State
 import logging
-from reactivex.abc import ObserverBase, SchedulerBase, DisposableBase
-import asyncio
-from typing import Callable, Any, Optional
-from reactivex.typing import Subscription
 
 
 def map_request(state: State, event: MapRequestEvent) -> None:
@@ -56,26 +52,20 @@ def handle_event(state: State, event: xcffib.Event) -> None:
         pass
 
 
-def push_x_events(state, frequency):  # type: ignore[no-untyped-def]
+async def handle_events(state) -> None:
+    while True:
+        try:
+            event = state.connection.poll_for_event()
+            if event is not None:
+                handle_event(event)
+            else:
+                state.connection.flush()
+                await asyncio.sleep(1 / state.settings.getfloat("DEFAULT", "event_handling_rate"))
+        except WindowError:
+            pass
+        except DrawableError:
+            pass
+        except xcffib.Error as e:
+            raise e
 
-    def push_x_events_(observer, scheduler):  # type: ignore[no-untyped-def]
-
-        async def push_x_events__(observer, scheduler):  # type: ignore[no-untyped-def]
-            while True:
-                try:
-                    event = state.connection.poll_for_event()
-                    if event is not None:
-                        observer.on_next(event)
-                    else:
-                        state.connection.flush()
-                        await asyncio.sleep(1 / frequency)
-                except WindowError:
-                    pass
-                except DrawableError:
-                    pass
-                except xcffib.Error as e:
-                    raise e
-
-        state.tasks.add(asyncio.create_task(push_x_events__(observer, scheduler)))
-
-    return push_x_events_
+        state.tasks.add()

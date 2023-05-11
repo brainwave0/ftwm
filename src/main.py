@@ -25,9 +25,8 @@ from mediapipe.python.solutions.face_detection import FaceDetection  # type: ign
 from .state import State
 import reactivex
 from typing import Callable, Any
-from .event import push_x_events
+from .event import handle_events
 from reactivex.scheduler.eventloop import AsyncIOScheduler
-
 
 async def main() -> None:
     settings = get_settings()
@@ -39,13 +38,8 @@ async def main() -> None:
     tasks: set[asyncio.Task[None]] = set()
     state = State(settings, connection, windows, screen, tasks)
     await dbus.setup(state)
-    reactivex.create(
-        push_x_events(state, state.settings.getfloat("DEFAULT", "event_handling_rate"))
-    ).subscribe(
-        on_next=lambda x: handle_event(state, x),
-        scheduler=AsyncIOScheduler(asyncio.get_running_loop()),
-    )
-    await pan_windows_with_face(state)
+    state.tasks.add(asyncio.create_task(pan_windows_with_face(state)))
+    await handle_events(state)
 
 
 asyncio.run(main())
