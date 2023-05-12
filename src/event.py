@@ -14,6 +14,7 @@ from .window import Window
 from .click_to_focus import register_for_button_press_events, allow_events, focus_window
 from .state import State
 import logging
+import asyncio
 
 
 def map_request(state: State, event: MapRequestEvent) -> None:
@@ -52,12 +53,12 @@ def handle_event(state: State, event: xcffib.Event) -> None:
         pass
 
 
-async def handle_events(state) -> None:
+async def handle_events(state: State) -> None:
     while True:
         try:
             event = state.connection.poll_for_event()
             if event is not None:
-                handle_event(event)
+                handle_event(state, event)
             else:
                 state.connection.flush()
                 await asyncio.sleep(1 / state.settings.getfloat("DEFAULT", "event_handling_rate"))
@@ -67,5 +68,3 @@ async def handle_events(state) -> None:
             pass
         except xcffib.Error as e:
             raise e
-
-        state.tasks.add()

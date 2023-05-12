@@ -27,7 +27,7 @@ class Camera:
         while True:
             self._set_frame()
 
-    def _set_frame(self):
+    def _set_frame(self) -> None:
         if self._frame is None:
             success, self._frame = self._video_capture.read()
             if not success:

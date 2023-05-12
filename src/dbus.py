@@ -35,6 +35,8 @@ class Interface(ServiceInterface):  # type: ignore[misc]
                 "com.github.brainwave0.ftwm.error.InvalidInput",
                 f'Direction must be -1 or 1, but "{direction}" was provided.',
             )
+        elif window is None:
+            raise no_window_error
         else:
             current_value = getattr(window, dimension)
             new_value = increment((window.id, dimension), current_value, direction)
