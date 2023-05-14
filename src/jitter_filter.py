@@ -25,19 +25,14 @@ class JitterFilter:
         self._threshold = threshold
         self._period = period
 
-    def _moving(self, xs: Sequence[float]) -> bool:
+    def _moving(self) -> bool:
         """
         Determines if the subject is moving or still. It works by summing the changes in position. If the subject is still, then it should be close to zero.
         """
-        return (
-            len(xs) > 1
-            and abs(mean(a - b for a, b in zip(xs, xs[1:]))) > self._threshold
-        )
+        return any(sum(a - b for a, b in zip(xs, xs[1:])) > self._threshold for xs in transpose(self._prevs))
 
     def filter(self, other: tuple[float, float]) -> tuple[float, float]:
         self._prevs.append(other)
-        if self._moving([i[0] for i in self._prevs]) or self._moving(
-            [i[1] for i in self._prevs]
-        ):
+        if self._moving():
             self._anchor = other
         return self._anchor
