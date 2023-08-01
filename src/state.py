@@ -16,10 +16,12 @@ class State:
         connection: Connection,
         windows: list[Window],
         screen: Screen,
-        tasks: set[asyncio.Task[None]],
+        tasks: dict[str, asyncio.Task[None]],
+        paused: bool
     ):
         self.settings = settings
         self.connection = connection
         self.windows = windows
         self.screen = screen
         self.tasks = tasks
+        self.paused = paused

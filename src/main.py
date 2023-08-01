@@ -6,7 +6,6 @@ from xcffib import connect, Connection  # type: ignore[import]
 
 from .event import handle_event
 from .face_tracking import get_face_delta, get_face_detections
-from .jitter_filter import JitterFilter
 from .moving_average_filter import MovingAverageFilter
 from .misc import (
     register_wm,
@@ -23,10 +22,9 @@ import src.dbus as dbus
 from xdg import xdg_config_home  # type: ignore[import]
 from mediapipe.python.solutions.face_detection import FaceDetection  # type: ignore[import]
 from .state import State
-import reactivex
 from typing import Callable, Any
 from .event import handle_events
-from reactivex.scheduler.eventloop import AsyncIOScheduler
+from logging import error
 
 async def main() -> None:
     settings = get_settings()
@@ -35,11 +33,17 @@ async def main() -> None:
     windows: list[Window] = []
     root = connection.get_setup().roots[0]
     screen = Screen(root.width_in_pixels, root.height_in_pixels)
-    tasks: set[asyncio.Task[None]] = set()
-    state = State(settings, connection, windows, screen, tasks)
+    tasks: dict[str, asyncio.Task[None]] = {}
+    state = State(settings, connection, windows, screen, tasks, False)
     await dbus.setup(state)
-    state.tasks.add(asyncio.create_task(pan_windows_with_face(state)))
+    state.tasks["pan_windows_with_face"] = asyncio.create_task(pan_windows_with_face(state))
     await handle_events(state)
 
-
-asyncio.run(main())
+try:
+    asyncio.run(main())
+except Exception as e:
+    with open("/home/ian/ftwm.exception", "w") as file:
+        file.write(str(e))
+    error(str(e))
+    print(e)
+    raise

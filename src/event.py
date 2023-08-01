@@ -4,6 +4,9 @@ from xcffib.xproto import (  # type: ignore[import]
     MapRequestEvent,
     DestroyNotifyEvent,
     ButtonPressEvent,
+    ButtonReleaseEvent,
+    KeyPressEvent,
+    KeyReleaseEvent,
     WindowError,
     DrawableError,
 )
@@ -11,10 +14,11 @@ from xcffib.xproto import (  # type: ignore[import]
 from .placement import place
 from .screen import Screen
 from .window import Window
-from .click_to_focus import register_for_button_press_events, allow_events, focus_window
+from .click_to_focus import register_for_button_press_events, register_for_key_press_events, allow_events, focus_window
 from .state import State
-import logging
 import asyncio
+from .misc import delay_resume_panning, pause_panning
+from logging import error
 
 
 def map_request(state: State, event: MapRequestEvent) -> None:
@@ -25,6 +29,7 @@ def map_request(state: State, event: MapRequestEvent) -> None:
     place(state, state.windows, window)
     state.windows.append(window)
     state.connection.core.MapWindow(event.window)
+    register_for_key_press_events(state, event.window)
     register_for_button_press_events(state, event.window)
 
 
@@ -37,10 +42,26 @@ def destroy_notify(state: State, event: DestroyNotifyEvent) -> None:
 
 
 def button_press(state: State, event: ButtonPressEvent) -> None:
+    print("button press")
     if any(event.event == window.id for window in state.windows):
         focus_window(state, event.event)
+    pause_panning(state)
     allow_events(state)
 
+def button_release(state: State) -> None:
+    print("button release")
+    delay_resume_panning(state)
+    allow_events(state)
+
+def key_press(state: State) -> None:
+    print("key press")
+    pause_panning(state)
+    allow_events(state)
+
+def key_release(state: State) -> None:
+    print("key release")
+    delay_resume_panning(state)
+    allow_events(state)
 
 def handle_event(state: State, event: xcffib.Event) -> None:
     if isinstance(event, MapRequestEvent):
@@ -49,6 +70,12 @@ def handle_event(state: State, event: xcffib.Event) -> None:
         destroy_notify(state, event)
     elif isinstance(event, ButtonPressEvent):
         button_press(state, event)
+    elif isinstance(event, ButtonReleaseEvent):
+        button_release(state)
+    elif isinstance(event, KeyPressEvent):
+        key_press(state)
+    elif isinstance(event, KeyReleaseEvent):
+        key_release(state)
     else:
         pass
 
@@ -62,9 +89,11 @@ async def handle_events(state: State) -> None:
             else:
                 state.connection.flush()
                 await asyncio.sleep(1 / state.settings.getfloat("DEFAULT", "event_handling_rate"))
-        except WindowError:
-            pass
-        except DrawableError:
+        except WindowError as e:
+            error(e)
+        except DrawableError as e:
+            error(e)
             pass
         except xcffib.Error as e:
+            error(e)
             raise e

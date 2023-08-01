@@ -14,12 +14,12 @@ from glob import glob
 from .face_tracking import get_face_detections, get_face_delta
 from os import makedirs
 import shutil
-from .jitter_filter import JitterFilter
 from .moving_average_filter import MovingAverageFilter
 import asyncio
 from mediapipe.python.solutions.face_detection import FaceDetection  # type: ignore[import]
 from .state import State
 from .camera import Camera
+from logging import error
 
 
 def pan(state: State, delta: tuple[float, float]) -> None:
@@ -94,24 +94,49 @@ def get_and_set_up_camera(
 
 
 async def pan_windows_with_face(state: State) -> None:
-    face_detector = FaceDetection(model_selection=0, min_detection_confidence=0)
-    scale = state.settings.getfloat("DEFAULT", "scale")
-    camera = get_and_set_up_camera(state, face_detector)
-    jitter_filter = JitterFilter(
-        threshold=state.settings.getfloat("Jitter Filter", "threshold") * scale,
-        period=state.settings.getint("Jitter Filter", "period"),
-    )
-    moving_average_filter = MovingAverageFilter(
-        period=state.settings.getint("DEFAULT", "moving_average_period")
-    )
-    while True:
-        frame = camera.get_frame()
-        if frame is not None:
-            face_delta = get_face_delta(face_detector, frame)
-            if face_delta:
-                window_delta = face_delta
-                window_delta = moving_average_filter.filter(window_delta)
-                window_delta = jitter_filter.filter(window_delta)
-                window_delta = (window_delta[0] * scale, -window_delta[1] * scale)
-                pan(state, window_delta)
-        await asyncio.sleep(1 / state.settings.getfloat("DEFAULT", "frame_rate"))
+    try:
+        face_detector = FaceDetection(model_selection=0, min_detection_confidence=0)
+        scale = state.settings.getfloat("DEFAULT", "scale")
+        camera = get_and_set_up_camera(state, face_detector)
+        moving_average_filter = MovingAverageFilter(
+            period=state.settings.getint("DEFAULT", "moving_average_period")
+        )
+        prev = state.paused
+        while True:
+            if prev != state.paused:
+                if state.paused:
+                    print("paused")
+                else:
+                    print("unpaused")
+            prev = state.paused
+            if not state.paused:
+                frame = camera.get_frame()
+                if frame is not None:
+                    face_delta = get_face_delta(face_detector, frame)
+                    if face_delta:
+                        window_delta = face_delta
+                        window_delta = moving_average_filter.filter(window_delta)
+                        window_delta = (window_delta[0] * scale, -window_delta[1] * scale)
+                        pan(state, window_delta)
+            await asyncio.sleep(1 / state.settings.getfloat("DEFAULT", "frame_rate"))
+    except Exception as e:
+        with open("/home/ian/ftwmx", "w") as file:
+            file.write(str(e))
+        error(e)
+        raise
+
+def pause_panning(state: State) -> None:
+    if "delay_resume_panning" in state.tasks:
+        task = state.tasks["delay_resume_panning"]
+        task.cancel()
+    print("pausing")
+    state.paused = True
+
+def delay_resume_panning(state: State) -> None:
+    async def helper(state: State) -> None:
+        await asyncio.sleep(state.settings.getfloat("DEFAULT", "panning_resume_delay") / 1000)
+        print("resuming")
+        state.paused = False
+    if "delay_resume_panning" in state.tasks:
+        state.tasks["delay_resume_panning"].cancel()
+    state.tasks["delay_resume_panning"] = asyncio.create_task(helper(state))

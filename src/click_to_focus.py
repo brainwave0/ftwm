@@ -14,8 +14,9 @@ from .state import State
 from src.window import get_active_window, Window
 
 
+# 0111
 def register_for_button_press_events(state: State, window_id: int) -> None:
-    state.connection.core.UngrabButton(ButtonIndex.Any, window_id, Grab.Any)
+    # state.connection.core.UngrabButton(ButtonIndex.Any, window_id, ModMask.Any)
 
     # GrabButton can register the window for button press events, but it blocks clicks to other windows, so allow_events
     # is used later.
@@ -27,16 +28,30 @@ def register_for_button_press_events(state: State, window_id: int) -> None:
         GrabMode.Async,
         xcffib.xproto.Window._None,
         Cursor._None,
-        ButtonIndex._1,
+        ButtonIndex.Any,
         ModMask.Any,
     )
 
+def register_for_key_press_events(state: State, window_id: int) -> None:
+    state.connection.core.UngrabKey(Grab.Any, window_id, ModMask.Any)
+
+    # GrabButton can register the window for button press events, but it blocks clicks to other windows, so allow_events
+    # is used later.
+    state.connection.core.GrabKey(
+        1,
+        window_id,
+        ModMask.Any,
+        Grab.Any,
+        GrabMode.Async,
+        GrabMode.Sync,
+    )
 
 def allow_events(state: State) -> None:
     """
     Allows clicks to other windows when button press events are grabbed by another window.
     """
     state.connection.core.AllowEvents(Allow.ReplayPointer, CurrentTime)
+    state.connection.core.AllowEvents(Allow.ReplayKeyboard, CurrentTime)
 
 
 def focus_window(state: State, event_window_id: int) -> None:
