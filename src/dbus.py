@@ -1,11 +1,9 @@
-from dbus_next import DBusError  # type: ignore[import]
-from dbus_next.aio import MessageBus  # type: ignore[import]
-from dbus_next.service import ServiceInterface, method  # type: ignore[import]
+from dbus_next import DBusError  # type: ignore[import-not-found]
+from dbus_next.aio import MessageBus  # type: ignore[import-not-found]
+from dbus_next.service import ServiceInterface, method  # type: ignore[import-not-found]
 
 from src.increment import increment
 from src.placement import arrange_windows
-from src.screen import Screen
-from src.window import Window, get_active_window
 from .state import State
 
 no_window_error = DBusError(
@@ -16,15 +14,15 @@ no_window_error = DBusError(
 class Interface(ServiceInterface):  # type: ignore[misc]
     def __init__(self, state: State) -> None:
         super().__init__("com.github.brainwave0.ftwm.interface")
-        self.state = state
+        self._state = state
 
     @method()
     async def Arrange(self):  # type: ignore[no-untyped-def]
-        arrange_windows(self.state)
+        arrange_windows(self._state)
 
     @method()  # type: ignore[misc]
     async def Increment(self, dimension: "s", direction: "n"):  # type: ignore[no-untyped-def, name-defined]
-        window = get_active_window(self.state)
+        window = self._state.active_window
         if dimension not in ["width", "height"]:
             raise DBusError(
                 "com.github.brainwave0.ftwm.error.InvalidInput",
@@ -44,7 +42,7 @@ class Interface(ServiceInterface):  # type: ignore[misc]
 
     @method()
     async def Kill(self):  # type: ignore[no-untyped-def]
-        window = get_active_window(self.state)
+        window = self._state.active_window
         if window is None:
             raise no_window_error
         else:

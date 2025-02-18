@@ -1,49 +1,71 @@
 import asyncio
-from os import environ
 
-import cv2  # type: ignore[import]
-from xcffib import connect, Connection  # type: ignore[import]
 
-from .event import handle_event
-from .face_tracking import get_face_delta, get_face_detections
-from .moving_average_filter import MovingAverageFilter
+from .event_handlers import register_events
 from .misc import (
-    register_wm,
-    pan,
     get_settings,
-    get_and_set_up_camera,
     pan_windows_with_face,
 )
 from .screen import Screen
 from .window import Window
-from threading import Thread
-import time
 import src.dbus as dbus
-from xdg import xdg_config_home  # type: ignore[import]
-from mediapipe.python.solutions.face_detection import FaceDetection  # type: ignore[import]
 from .state import State
-from typing import Callable, Any
-from .event import handle_events
-from logging import error
+from pywayland.server import Display  # type: ignore[attr-defined]
+from wlroots.wlr_types import Seat, OutputLayout, XdgShell, Cursor, Scene, DataDeviceManager, XCursorManager  # type: ignore[attr-defined]
+from wlroots.helper import build_compositor
+from threading import Thread
+import logging
+from wlroots.util.log import log_init
+from pywayland import lib
 
-async def main() -> None:
-    settings = get_settings()
-    connection = connect(environ["DISPLAY"])
-    register_wm(connection)
-    windows: list[Window] = []
-    root = connection.get_setup().roots[0]
-    screen = Screen(root.width_in_pixels, root.height_in_pixels)
-    tasks: dict[str, asyncio.Task[None]] = {}
-    state = State(settings, connection, windows, screen, tasks, False)
-    await dbus.setup(state)
-    state.tasks["pan_windows_with_face"] = asyncio.create_task(pan_windows_with_face(state))
-    await handle_events(state)
+async def dispatch_events(state):
+    loop = state.display.get_event_loop()
+    while True:
+        loop.dispatch(0)
+        state.display.flush_clients()
+        await asyncio.sleep(0)
 
-try:
-    asyncio.run(main())
-except Exception as e:
-    with open("/home/ian/ftwm.exception", "w") as file:
-        file.write(str(e))
-    error(str(e))
-    print(e)
-    raise
+# initialization
+log_init(logging.INFO)
+logging.basicConfig(level=logging.INFO)
+settings = get_settings()
+windows: list[Window] = []
+tasks: set[asyncio.Task[None]] = set()
+with Display() as display:
+    compositor, allocator, renderer, backend, subcompositor = build_compositor(
+        display
+    )
+    device_manager = DataDeviceManager(display)
+    xdg_shell = XdgShell(display)
+    with OutputLayout() as output_layout, Cursor(output_layout) as cursor, XCursorManager(None, 24) as xcursor_manager, Seat(display, "seat0") as seat:
+        scene = Scene()
+        scene_layout = scene.attach_output_layout(output_layout)
+        dimensions = output_layout.get_box()
+        screen = Screen(dimensions.width, dimensions.height)
+        state = State(
+            settings,
+            windows,
+            screen,
+            tasks,
+            False,
+            seat,
+            scene,
+            cursor,
+            xdg_shell,
+            backend,
+            scene_layout,
+            allocator,
+            renderer,
+            output_layout,
+            display
+        )
+        socket = display.add_socket()
+        logging.info(f"socket: {socket.decode()}")
+        register_events(state)
+
+        # running
+        event_loop = asyncio.new_event_loop()
+        for function in (pan_windows_with_face, dbus.setup, dispatch_events):
+            tasks.add(event_loop.create_task(function(state)))
+        with backend:  # start the backend
+            event_loop.run_forever()

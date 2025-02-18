@@ -1,25 +1,25 @@
-import mediapipe  # type: ignore[import]
-from xcffib import Connection  # type: ignore[import]
-from xcffib.xproto import (  # type: ignore[import]
-    CW,
-    EventMask,
-)
-
+import logging
 from .window import Window
-import cv2  # type: ignore[import]
+import cv2  # type: ignore[import-not-found]
 from configparser import ConfigParser
 from pathlib import Path
-from xdg import xdg_config_home  # type: ignore[import]
+from xdg_base_dirs import xdg_config_home  # type: ignore[import-not-found]
 from glob import glob
 from .face_tracking import get_face_detections, get_face_delta
 from os import makedirs
 import shutil
 from .moving_average_filter import MovingAverageFilter
 import asyncio
-from mediapipe.python.solutions.face_detection import FaceDetection  # type: ignore[import]
 from .state import State
 from .camera import Camera
-from logging import error
+from wlroots.wlr_types import ( # type: ignore[attr-defined]
+    Surface,
+    SceneNodeType,
+    SceneBuffer,
+    SceneSurface,
+    SceneTree,
+)
+from typing import cast
 
 
 def pan(state: State, delta: tuple[float, float]) -> None:
@@ -36,15 +36,6 @@ def pan(state: State, delta: tuple[float, float]) -> None:
         )
 
 
-def register_wm(connection: Connection) -> None:
-    root_id = connection.get_setup().roots[0].root
-    connection.core.ChangeWindowAttributes(
-        root_id,
-        CW.EventMask,
-        [EventMask.SubstructureRedirect | EventMask.SubstructureNotify],
-    )
-
-
 def get_settings() -> ConfigParser:
     source_directory = Path(__file__).resolve().parent
     settings_file_path = xdg_config_home() / "ftwm/settings.ini"
@@ -56,23 +47,24 @@ def get_settings() -> ConfigParser:
     return settings
 
 
-def auto_camera_index(face_detector: FaceDetection) -> cv2.VideoCapture:
+def auto_camera_index(face_detector: cv2.FaceDetectorYN) -> cv2.VideoCapture:
     for index in sorted(
         int(device.replace("/dev/video", "")) for device in glob("/dev/video*")
     ):
         camera = cv2.VideoCapture(index)
         _, frame = camera.read()
         if frame is not None:
-            detections = get_face_detections(face_detector, frame)
-            if detections:
-                camera.release()
-                return index
+            # detections = get_face_detections(face_detector, frame)
+            # if detections:
+            #     camera.release()
+            #     return index
+            return index
         camera.release()
     return None
 
 
 def get_and_set_up_camera(
-    state: State, face_detector: FaceDetection
+    state: State, face_detector: cv2.FaceDetectorYN
 ) -> cv2.VideoCapture:
     fps = state.settings.getint("Camera", "fps")
     if (
@@ -94,49 +86,62 @@ def get_and_set_up_camera(
 
 
 async def pan_windows_with_face(state: State) -> None:
-    try:
-        face_detector = FaceDetection(model_selection=0, min_detection_confidence=0)
-        scale = state.settings.getfloat("DEFAULT", "scale")
-        camera = get_and_set_up_camera(state, face_detector)
-        moving_average_filter = MovingAverageFilter(
-            period=state.settings.getint("DEFAULT", "moving_average_period")
-        )
-        prev = state.paused
-        while True:
-            if prev != state.paused:
-                if state.paused:
-                    print("paused")
-                else:
-                    print("unpaused")
-            prev = state.paused
-            if not state.paused:
-                frame = camera.get_frame()
-                if frame is not None:
-                    face_delta = get_face_delta(face_detector, frame)
-                    if face_delta:
-                        window_delta = face_delta
-                        window_delta = moving_average_filter.filter(window_delta)
-                        window_delta = (window_delta[0] * scale, -window_delta[1] * scale)
-                        pan(state, window_delta)
-            await asyncio.sleep(1 / state.settings.getfloat("DEFAULT", "frame_rate"))
-    except Exception as e:
-        with open("/home/ian/ftwmx", "w") as file:
-            file.write(str(e))
-        error(e)
-        raise
+    input_size = (300, 300)
+    face_detector = cv2.FaceDetectorYN_create('./assets/face_detection_yunet_2023mar.onnx', "", input_size, score_threshold=0.5)
+    scale = state.settings.getfloat("DEFAULT", "scale")
+    camera = get_and_set_up_camera(state, face_detector)
+    moving_average_filter = MovingAverageFilter(
+        period=state.settings.getint("DEFAULT", "moving_average_period")
+    )
+    while True:
+        if not state.paused:
+            frame = camera.get_frame()
+            if frame is not None:
+                frame = cv2.resize(frame, input_size)
+                face_delta = get_face_delta(face_detector, frame)
+                if face_delta:
+                    window_delta = face_delta
+                    window_delta = moving_average_filter.filter(window_delta)
+                    window_delta = (window_delta[0] * scale, -window_delta[1] * scale)
+                    pan(state, window_delta)
+        await asyncio.sleep(1 / state.settings.getfloat("DEFAULT", "frame_rate"))
 
-def pause_panning(state: State) -> None:
-    if "delay_resume_panning" in state.tasks:
-        task = state.tasks["delay_resume_panning"]
-        task.cancel()
-    print("pausing")
-    state.paused = True
 
 def delay_resume_panning(state: State) -> None:
     async def helper(state: State) -> None:
-        await asyncio.sleep(state.settings.getfloat("DEFAULT", "panning_resume_delay") / 1000)
-        print("resuming")
+        await asyncio.sleep(
+            state.settings.getfloat("DEFAULT", "panning_resume_delay") / 1000
+        )
         state.paused = False
+
     if "delay_resume_panning" in state.tasks:
         state.tasks["delay_resume_panning"].cancel()
     state.tasks["delay_resume_panning"] = asyncio.create_task(helper(state))
+
+
+def view_at(
+    state: State, layout_x: float, layout_y: float
+) -> tuple[Window | None, Surface | None, float, float]:
+    maybe_node = state.scene.tree.node.node_at(
+        layout_x,
+        layout_y,
+    )
+    if maybe_node is None or maybe_node[0].type != SceneNodeType.BUFFER:
+        return None, None, 0, 0
+
+    node, sx, sy = maybe_node
+    scene_buffer = SceneBuffer.from_node(node)
+    if scene_buffer is None:
+        return None, None, 0, 0
+    scene_surface = SceneSurface.from_buffer(scene_buffer)
+    if scene_surface is None:
+        return None, None, 0, 0
+
+    surface = scene_surface.surface
+    tree = cast(SceneTree, node.parent)
+
+    # Find the node corresponding to the view at the root of this tree
+    while tree.node.data is not None:
+        tree = cast(SceneTree, tree.node.parent)
+
+    return tree.node.data, surface, sx, sy

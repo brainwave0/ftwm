@@ -1,28 +1,29 @@
-from xcffib import Connection  # type: ignore[import]
-from xcffib.xproto import ConfigWindow  # type: ignore[import]
-
+import logging
 from .rectangle import Rectangle
-from typing import Optional
 from .state import State
+from wlroots.wlr_types.xdg_shell import XdgSurface
+from wlroots.wlr_types import SceneNode  # type: ignore[attr-defined]
 
 
 class Window:
     def __init__(
         self,
         state: State,
-        id: int,
+        xdg_surface: XdgSurface,
+        scene_node: SceneNode,
         virtual_position: tuple[int, int] = (0, 0),
         size: tuple[int, int] = (0, 0),
     ) -> None:
-        assert not state.connection.invalid()
         assert size[0] >= 0 and size[1] >= 0
         self._position = (0, 0)
-        self.state = state
-        self.id = id
+        self._state = state
         self.virtual = Rectangle()
         self.virtual.position = virtual_position
         self.virtual.size = size
         self.active = False
+        self._xdg_surface = xdg_surface
+        self._scene_node = scene_node
+        self.id = state.new_id()
 
     @property
     def position(self) -> tuple[int, int]:
@@ -31,9 +32,7 @@ class Window:
     @position.setter
     def position(self, other: tuple[int, int]) -> None:
         if self._position != other:
-            self.state.connection.core.ConfigureWindow(
-                self.id, ConfigWindow.X | ConfigWindow.Y, list(other)
-            )
+            self._scene_node.set_position(*other)
             self._position = other
 
     @property
@@ -43,9 +42,7 @@ class Window:
     @width.setter
     def width(self, other: int) -> None:
         self.virtual.width = other
-        self.state.connection.core.ConfigureWindow(
-            self.id, ConfigWindow.Width, [max(1, int(other))]
-        )
+        self._xdg_surface.set_size(max(1, other), int(self.virtual.height))
 
     @property
     def height(self) -> float:
@@ -54,13 +51,18 @@ class Window:
     @height.setter
     def height(self, other: int) -> None:
         self.virtual.height = other
-        self.state.connection.core.ConfigureWindow(
-            self.id, ConfigWindow.Height, [max(1, int(other))]
-        )
+        self._xdg_surface.set_size(int(self.virtual.width), max(1, other))
 
     def kill(self) -> None:
-        self.state.connection.core.KillClient(self.id)
+        self._xdg_surface.send_close
+        self._state.windows.remove(self)
 
-
-def get_active_window(state: State) -> Optional[Window]:
-    return next((window for window in state.windows if window.active), None)
+    def focus(self) -> None:
+        if self._state.active_window is not None:
+            self._state.active_window._xdg_surface.set_activated(False)
+        self._xdg_surface.set_activated(True)
+        if self._state.seat.keyboard:
+            self._state.seat.keyboard_notify_enter(
+                self._xdg_surface.surface, self._state.seat.keyboard
+            )
+        self._state.active_window = self

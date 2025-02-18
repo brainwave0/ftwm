@@ -8,8 +8,7 @@ def test_get_frame():
     camera._previous_frame = None
 
     camera._frame = None
-    frame = camera.get_frame()
-    assert camera.get_frame() is None
+    assert camera.get_frame() == None
 
     camera._frame = "foo"
     assert camera.get_frame() == "foo"
@@ -20,6 +19,7 @@ def test_get_frame():
     camera._frame = "bar"
     assert camera.get_frame() == "bar"
 
+
 def test_set_frame():
     camera = Camera.__new__(Camera)
     camera._video_capture = Mock()
@@ -27,12 +27,12 @@ def test_set_frame():
     camera._frame = None
     camera._video_capture.read.return_value = (True, "foo")
     camera._set_frame()
-    assert camera._frame is "foo"
+    assert camera._frame == "foo"
 
     camera._frame = "bar"
     camera._video_capture.read.return_value = (True, "foo")
     camera._set_frame()
-    assert camera._frame is "bar"
+    assert camera._frame == "bar"
 
     camera._frame = None
     camera._video_capture.read.return_value = (False, None)

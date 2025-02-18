@@ -1,19 +1,8 @@
-{ pkgs ? import <nixpkgs> {} }:
-(pkgs.buildFHSUserEnv {
-  name = "pipzone";
-  targetPkgs = pkgs: (with pkgs;[
-    python310Full
-    python310Packages.pip
-    python310Packages.virtualenv
-    gcc
-    zlib
-    libGL
-    glib
-    mypy
-    xorg.libxcb
-  ]);
+let pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/41bc1723c8789e9c46a1bb4897022f80d2cf147d.tar.gz") {}; in
+pkgs.mkShell {
+
+  nativeBuildInputs = [(pkgs.python3.withPackages (ps: with ps; [pywlroots numpy opencv-python xdg-base-dirs dbus-next]))];
   profile = ''
-    source venv/bin/activate
+    export SUBSHELL_NAME="nix-shell"
   '';
-  runScript = "bash";
-}).env
+}
