@@ -20,10 +20,8 @@ def get_average_point(image: cv2.Mat, detection: ArrayLike) -> tuple[float, floa
     """
     Averages the detected points for each feature of the face. This helps to reduce jitter.
     """
-    points = detection[0:14].reshape(-1, 2)
-    # points = [(point[0] * image.shape[1], point[1] * image.shape[0]) for point in points]
-    # logging.info(points)
-    point = reduce(lambda a, b: (a[0] + b[0], a[1] + b[1]), points)
+    points = detection[0:14].reshape(-1, 2)  # convert from 1D array to pairs
+    point = reduce(lambda a, b: (a[0] + b[0], a[1] + b[1]), points)  # sum
     return point[0] / len(points), point[1] / len(points)
 
 
@@ -37,12 +35,9 @@ def get_face_detections(
 
 
 # noinspection PyUnresolvedReferences
-def get_face_delta(
+def get_face_position(
     face_detector: cv2.FaceDetectorYN, image: cv2.Mat
 ) -> Optional[tuple[float, float]]:
-    """
-    Gets the face position relative to the center of the camera frame.
-    """
     center = (image.shape[1] / 2, image.shape[0] / 2)
     detections = get_face_detections(face_detector, image)[1]
     if detections is not None:

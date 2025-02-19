@@ -14,18 +14,15 @@ from wlroots.util.clock import Timespec
 
 
 def register_events(state: State) -> None:
-    logging.info("registering events")
     state.xdg_shell.new_surface_event.add(  # type: ignore[no-untyped-call]
         Listener(lambda listener, xdg_surface: new_xdg_surface(state, xdg_surface))
     )
     state.backend.new_input_event.add(
         Listener(lambda listener, input_device: new_input(state, input_device))
     )
-    print("adding output event listener")
     state.backend.new_output_event.add(Listener(lambda listener, output: new_output(state, output)))
 
 def new_xdg_surface(state: State, xdg_surface: XdgSurface) -> None:
-    logging.info("new_xdg_surface")
     scene_tree = Scene.xdg_surface_create(state.scene.tree, xdg_surface)
     window = Window(state, xdg_surface, scene_tree.node)
     geometry = xdg_surface.get_geometry()
@@ -36,7 +33,6 @@ def new_xdg_surface(state: State, xdg_surface: XdgSurface) -> None:
 
 
 def pointer_button(state: State, event: PointerButtonEvent) -> None:
-    logging.info("pointer button event")
     if event.button_state == ButtonState.PRESSED:
         state.paused = True
         window = view_at(state, state.cursor.x, state.cursor.y)[0]
@@ -47,7 +43,6 @@ def pointer_button(state: State, event: PointerButtonEvent) -> None:
 
 
 def key_press(state: State, key_event: KeyboardKeyEvent) -> None:
-    logging.info("key press event")
     if key_event.state == WlKeyboard.key_state.pressed:
         state.paused = True
     else:
@@ -55,7 +50,6 @@ def key_press(state: State, key_event: KeyboardKeyEvent) -> None:
 
 
 def new_input(state: State, input_device: InputDevice) -> None:
-    logging.info("new input")
     if input_device.type == InputDeviceType.KEYBOARD:
         state.keyboard = Keyboard.from_input_device(input_device)
         state.keyboard.key_event.add(  # type: ignore[no-untyped-call]
@@ -68,7 +62,6 @@ def new_input(state: State, input_device: InputDevice) -> None:
         )
 
 def new_output(state, output):
-    logging.info("new output")
     output.init_render(state.allocator, state.renderer)
     output_state = OutputState()
     output_state.set_enabled(True)

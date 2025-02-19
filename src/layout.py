@@ -7,14 +7,11 @@ from .dynamic_grid import DynamicGrid
 class Layout(ABC):
     def __init__(self, state: State) -> None:
         self._state = state
-        self.arrange()
 
     def arrange(self) -> None:
         self._state.screen.grid = DynamicGrid()
-        temp_windows = self._state.windows
-        self._state.windows = []
         for window in sorted(
-            temp_windows, key=lambda window: window.virtual.area(), reverse=True
+            self._state.windows, key=lambda window: window.virtual.area(), reverse=True
         ):
             self.place(window)
 
