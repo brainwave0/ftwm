@@ -5,7 +5,16 @@ from .panning import delay_resume_panning
 from pywayland.server import Listener  # type: ignore[attr-defined]
 from wlroots.wlr_types.pointer import PointerButtonEvent
 from wlroots.wlr_types.keyboard import KeyboardKeyEvent
-from wlroots.wlr_types import Scene, InputDevice, Keyboard, OutputState, SceneOutput, Output  # type: ignore[attr-defined]
+
+# type: ignore[attr-defined]
+from wlroots.wlr_types import (
+    Scene,
+    InputDevice,
+    Keyboard,
+    OutputState,
+    SceneOutput,
+    Output,
+)
 from wlroots.wlr_types.input_device import ButtonState, InputDeviceType
 from pywayland.protocol.wayland import WlKeyboard  # type: ignore[attr-defined]
 from wlroots.wlr_types.xdg_shell import XdgSurface
@@ -20,7 +29,10 @@ def register_events(state: State) -> None:
     state.backend.new_input_event.add(
         Listener(lambda listener, input_device: new_input(state, input_device))
     )
-    state.backend.new_output_event.add(Listener(lambda listener, output: new_output(state, output)))
+    state.backend.new_output_event.add(
+        Listener(lambda listener, output: new_output(state, output))
+    )
+
 
 def new_xdg_surface(state: State, xdg_surface: XdgSurface) -> None:
     scene_tree = Scene.xdg_surface_create(state.scene.tree, xdg_surface)
@@ -29,7 +41,8 @@ def new_xdg_surface(state: State, xdg_surface: XdgSurface) -> None:
     window.virtual.size = (geometry.width, geometry.height)
     state.layout.place(window)
     state.windows.append(window)
-    xdg_surface.destroy_event.add(Listener(lambda listener, data: window.kill()))  # type: ignore[no-untyped-call]
+    # type: ignore[no-untyped-call]
+    xdg_surface.destroy_event.add(Listener(lambda listener, data: window.kill()))
 
 
 def pointer_button(state: State, event: PointerButtonEvent) -> None:
@@ -61,12 +74,13 @@ def new_input(state: State, input_device: InputDevice) -> None:
             Listener(lambda listener, event: pointer_button(state, event))
         )
 
+
 def new_output(state: State, output: Output) -> None:
     output.init_render(state.allocator, state.renderer)
     output_state = OutputState()
     output_state.set_enabled(True)
     if mode := output.preferred_mode():
-       output_state.set_mode(mode)
+        output_state.set_mode(mode)
     output.commit(output_state)
     output_state.finish()
     state.outputs.append(output)
@@ -74,11 +88,15 @@ def new_output(state: State, output: Output) -> None:
     if not l_output:
         logging.warning("Failed to add output to layout.")
         return
-    output.frame_event.add(Listener(lambda listener, data: output_frame(state)))  # type: ignore[no-untyped-call]
-    output.request_state_event.add(Listener(lambda listener, request: output_request_state(state, request)))  # type: ignore[no-untyped-call]
+    # type: ignore[no-untyped-call]
+    output.frame_event.add(Listener(lambda listener, data: output_frame(state)))
+    output.request_state_event.add(
+        Listener(lambda listener, request: output_request_state(state, request))
+    )  # type: ignore[no-untyped-call]
     scene_output = SceneOutput.create(state.scene, output)
     if state.scene_layout:
         state.scene_layout.add_output(l_output, scene_output)
+
 
 def output_frame(state: State) -> None:
     output = state.outputs[0]
@@ -87,7 +105,8 @@ def output_frame(state: State) -> None:
     now = Timespec.get_monotonic_time()
     scene_output.send_frame_done(now)
 
-def output_request_state(state: State, request) -> None:  # type: ignore[no-untyped-def]
+
+# type: ignore[no-untyped-def]
+def output_request_state(state: State, request) -> None:
     output = state.outputs[0]
     output.commit(request.state)
-

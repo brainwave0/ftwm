@@ -7,7 +7,20 @@ if TYPE_CHECKING:
     from .window import Window
     from .screen import Screen
     import asyncio
-    from wlroots.wlr_types import Seat, Scene, Cursor, XdgShell, Keyboard, Backend, Output, Display, OutputLayout, SceneLayout  # type: ignore[attr-defined]
+
+    # type: ignore[attr-defined]
+    from wlroots.wlr_types import (
+        Seat,
+        Scene,
+        Cursor,
+        XdgShell,
+        Keyboard,
+        Backend,
+        Output,
+        Display,
+        OutputLayout,
+        SceneLayout,
+    )
     from wlroots.allocator import Allocator
     from wlroots.renderer import Renderer
     from .layout import Layout
@@ -30,7 +43,7 @@ class State:
         allocator: Allocator,
         renderer: Renderer,
         output_layout: OutputLayout,
-        display: Display
+        display: Display,
     ):
         self.settings = settings
         self.windows = windows

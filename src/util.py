@@ -10,6 +10,8 @@ from .state import State
 from .window import Window
 from xdg_base_dirs import xdg_config_home
 import cv2
+
+
 def view_at(
     state: State, layout_x: float, layout_y: float
 ) -> tuple[Window | None, Surface | None, float, float]:
@@ -36,6 +38,8 @@ def view_at(
         tree = cast(SceneTree, tree.node.parent)
 
     return tree.node.data, surface, sx, sy
+
+
 def get_settings() -> ConfigParser:
     source_directory = Path(__file__).resolve().parent
     settings_file_path = xdg_config_home() / "ftwm/settings.ini"
@@ -46,9 +50,9 @@ def get_settings() -> ConfigParser:
     settings = ConfigParser()
     settings.read([defaults, settings_file_path])
     return settings
-def get_and_set_up_camera(
-    state: State, face_detector: cv2.FaceDetectorYN
-) -> Camera:
+
+
+def get_and_set_up_camera(state: State, face_detector: cv2.FaceDetectorYN) -> Camera:
     fps = state.settings.getint("Camera", "fps")
     if (
         "capture_width" in state.settings["Camera"]
@@ -69,6 +73,8 @@ def get_and_set_up_camera(
         else:
             raise RuntimeError("Could not find a camera.")
     return camera
+
+
 def auto_camera_index() -> Optional[int]:
     video_capture = None
     index = None

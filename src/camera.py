@@ -20,7 +20,7 @@ class Camera:
 
     def get_frame(self) -> Optional[ArrayLike]:
         if self._frame is not None:
-            self._previous_frame = self._frame
+            # self._previous_frame = self._frame
             self._frame = None
         return self._previous_frame
 

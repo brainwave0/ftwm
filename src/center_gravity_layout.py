@@ -13,6 +13,7 @@ from .state import State
 class CenterGravityLayout(Layout):
     def __init__(self, state: State):
         self._state = state
+
     def place(self, window: Window) -> None:
         """
         Places the window on the virtual desktop as close to the center as possible without overlapping other windows.
@@ -51,11 +52,10 @@ class CenterGravityLayout(Layout):
         window.virtual.position = best_spot.position
         self._state.screen.grid.set_range(window.virtual, window)
 
-
     def _get_score(self, spot: Rectangle) -> float:
-        horizontal_score = abs(spot.center[0] - self._state.screen.geometry.center[0]) / (
-            self._state.screen.geometry.width / 2
-        )
+        horizontal_score = abs(
+            spot.center[0] - self._state.screen.geometry.center[0]
+        ) / (self._state.screen.geometry.width / 2)
         vertical_score = abs(spot.center[1] - self._state.screen.geometry.center[1]) / (
             self._state.screen.geometry.height / 2
         )
