@@ -1,13 +1,7 @@
-import logging
 from .window import Window
 import cv2
-from configparser import ConfigParser
-from pathlib import Path
 from xdg_base_dirs import xdg_config_home
-from glob import glob
 from .face_tracking import get_face_detections, get_face_position
-from os import makedirs
-import shutil
 from .moving_average_filter import MovingAverageFilter
 import asyncio
 from .state import State
@@ -19,7 +13,6 @@ from wlroots.wlr_types import (  # type: ignore[attr-defined]
     SceneSurface,
     SceneTree,
 )
-from typing import cast, Optional
 from .util import get_and_set_up_camera
 
 

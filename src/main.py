@@ -21,7 +21,6 @@ from wlroots.wlr_types import (
     XCursorManager,
 )
 from wlroots.helper import build_compositor
-from threading import Thread
 import logging
 from wlroots.util.log import log_init
 from pywayland import lib

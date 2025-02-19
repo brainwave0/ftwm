@@ -1,5 +1,4 @@
 from copy import copy
-from functools import reduce
 
 from .dynamic_grid import DynamicGrid
 from .rectangle import Rectangle

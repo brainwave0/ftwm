@@ -1,4 +1,3 @@
-import logging
 from .rectangle import Rectangle
 from .state import State
 from wlroots.wlr_types.xdg_shell import XdgSurface
