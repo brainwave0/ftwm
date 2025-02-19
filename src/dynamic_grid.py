@@ -72,7 +72,7 @@ class DynamicGrid:
                 value = self._array[y, x]
                 yield Rectangle(left, top, width, height), value
 
-    def empty(rectangle: Rectangle) -> bool:
+    def empty(self, rectangle: Rectangle) -> bool:
         """
         Returns True if the specified area is empty.
         """

@@ -1,5 +1,5 @@
 from typing import Optional
-import cv2  # type: ignore[import-not-found]
+import cv2
 from threading import Thread
 from numpy.typing import ArrayLike
 

@@ -5,10 +5,14 @@ from .dynamic_grid import DynamicGrid
 from .rectangle import Rectangle
 from .screen import Screen
 from .window import Window
-from .self._state import self._state
+from .state import State
+from .layout import Layout
+from .state import State
 
 
 class CenterGravityLayout(Layout):
+    def __init__(self, state: State):
+        self._state = state
     def place(self, window: Window) -> None:
         """
         Places the window on the virtual desktop as close to the center as possible without overlapping other windows.
@@ -37,8 +41,8 @@ class CenterGravityLayout(Layout):
                     gravity_point = getattr(cell, gravity)
                     setattr(spot, gravity, gravity_point)
 
-                    if self._state.grid.empty(spot):
-                        new_score = self._get_score(self._state, spot)
+                    if self._state.screen.grid.empty(spot):
+                        new_score = self._get_score(spot)
                         if best_spot is None or new_score > best_score:
                             # update the best spot and its score
                             best_spot = spot

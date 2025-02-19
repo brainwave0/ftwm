@@ -61,8 +61,8 @@ class Window:
         if self._state.active_window is not None:
             self._state.active_window._xdg_surface.set_activated(False)
         self._xdg_surface.set_activated(True)
-        if self._state.seat.keyboard:
+        if self._state.keyboard:
             self._state.seat.keyboard_notify_enter(
-                self._xdg_surface.surface, self._state.seat.keyboard
+                self._xdg_surface.surface, self._state.keyboard
             )
         self._state.active_window = self

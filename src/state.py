@@ -1,13 +1,16 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Optional
+from .center_gravity_layout import CenterGravityLayout
 
 if TYPE_CHECKING:
     from configparser import ConfigParser
     from .window import Window
     from .screen import Screen
     import asyncio
-    from wlroots.wlr_types import Seat, Scene, Cursor, XdgShell, Keyboard, Backend, Output, Display  # type: ignore[attr-defined]
-    from wlroots import Allocator, Renderer
+    from wlroots.wlr_types import Seat, Scene, Cursor, XdgShell, Keyboard, Backend, Output, Display, OutputLayout, SceneLayout  # type: ignore[attr-defined]
+    from wlroots.allocator import Allocator
+    from wlroots.renderer import Renderer
+    from .layout import Layout
 
 
 class State:
@@ -48,6 +51,7 @@ class State:
         self.outputs: list[Output] = []
         self.output_layout = output_layout
         self.display = display
+        self.layout = CenterGravityLayout(self)
 
     def new_id(self) -> int:
         self._prev_id += 1

@@ -2,10 +2,8 @@ import asyncio
 
 
 from .event_handlers import register_events
-from .misc import (
-    get_settings,
-    pan_windows_with_face,
-)
+from .panning import pan_windows_with_face
+from .util import get_settings
 from .screen import Screen
 from .window import Window
 import src.dbus as dbus
@@ -18,7 +16,7 @@ import logging
 from wlroots.util.log import log_init
 from pywayland import lib
 
-async def dispatch_events(state):
+async def dispatch_events(state: State) -> None:
     loop = state.display.get_event_loop()
     while True:
         loop.dispatch(0)
@@ -30,7 +28,7 @@ log_init(logging.INFO)
 logging.basicConfig(level=logging.INFO)
 settings = get_settings()
 windows: list[Window] = []
-tasks: set[asyncio.Task[None]] = set()
+tasks: dict[str, asyncio.Task[None]] = {}
 with Display() as display:
     compositor, allocator, renderer, backend, subcompositor = build_compositor(
         display
@@ -66,6 +64,6 @@ with Display() as display:
         # running
         event_loop = asyncio.new_event_loop()
         for function in (pan_windows_with_face, dbus.setup, dispatch_events):
-            tasks.add(event_loop.create_task(function(state)))
+            tasks[function.__name__] = event_loop.create_task(function(state))
         with backend:  # start the backend
             event_loop.run_forever()
