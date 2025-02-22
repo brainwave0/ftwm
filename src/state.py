@@ -8,8 +8,8 @@ if TYPE_CHECKING:
     from .screen import Screen
     import asyncio
 
-    # type: ignore[attr-defined]
-    from wlroots.wlr_types import (
+    
+    from wlroots.wlr_types import (  # type: ignore[attr-defined]
         Seat,
         Scene,
         Cursor,
@@ -51,7 +51,7 @@ class State:
         self.tasks = tasks
         self.paused = paused
         self.seat = seat
-        self.active_window: Optional[Window] = None
+        self._active_window: Optional[Window] = None
         self.scene = scene
         self.cursor = cursor
         self.xdg_shell = xdg_shell
@@ -69,3 +69,31 @@ class State:
     def new_id(self) -> int:
         self._prev_id += 1
         return self._prev_id
+
+    @property
+    def active_window(self) -> Optional[Window]:
+        return self._active_window
+    
+    @active_window.setter
+    def active_window(self, window: Window) -> None:
+        if self._active_window is not None:
+            self._active_window._xdg_surface.set_activated(False)
+        window._xdg_surface.set_activated(True)
+        if self.keyboard:
+            self.reset_keyboard_focus()
+        self._active_window = window
+
+        # move to the top of the stack in case a window is destroyed and a new active window is needed
+        self.windows.remove(window)
+        self.windows.append(window)
+
+    def reset_keyboard_focus(self) -> None:
+        assert self.keyboard is not None
+        if self.active_window is not None:
+            self.seat.keyboard_notify_enter(
+                self.active_window._xdg_surface.surface, self.keyboard
+            )
+
+    def reset_active_window(self) -> None:
+        self.active_window = self.windows[-1]
+        

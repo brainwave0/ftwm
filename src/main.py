@@ -10,8 +10,8 @@ import src.dbus as dbus
 from .state import State
 from pywayland.server import Display  # type: ignore[attr-defined]
 
-# type: ignore[attr-defined]
-from wlroots.wlr_types import (
+
+from wlroots.wlr_types import (  # type: ignore[attr-defined]
     Seat,
     OutputLayout,
     XdgShell,
@@ -24,6 +24,7 @@ from wlroots.helper import build_compositor
 import logging
 from wlroots.util.log import log_init
 from pywayland import lib
+import os
 
 
 async def dispatch_events(state: State) -> None:
@@ -36,7 +37,7 @@ async def dispatch_events(state: State) -> None:
 
 # initialization
 log_init(logging.INFO)
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=getattr(logging, os.environ.get("LOG_LEVEL", "info").upper()))
 settings = get_settings()
 windows: list[Window] = []
 tasks: dict[str, asyncio.Task[None]] = {}
@@ -51,12 +52,10 @@ with Display() as display:
     ) as seat:
         scene = Scene()
         scene_layout = scene.attach_output_layout(output_layout)
-        dimensions = output_layout.get_box()
-        screen = Screen(dimensions.width, dimensions.height)
         state = State(
             settings,
             windows,
-            screen,
+            Screen(0, 0),
             tasks,
             False,
             seat,
@@ -76,6 +75,7 @@ with Display() as display:
 
         # running
         event_loop = asyncio.new_event_loop()
+        logging.info("creating tasks")
         for function in (pan_windows_with_face, dbus.setup, dispatch_events):
             tasks[function.__name__] = event_loop.create_task(function(state))
         with backend:  # start the backend

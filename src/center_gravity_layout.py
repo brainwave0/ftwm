@@ -1,12 +1,14 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from .state import State
 from copy import copy
 
 from .dynamic_grid import DynamicGrid
 from .rectangle import Rectangle
 from .screen import Screen
 from .window import Window
-from .state import State
 from .layout import Layout
-from .state import State
 
 
 class CenterGravityLayout(Layout):
@@ -17,6 +19,11 @@ class CenterGravityLayout(Layout):
         """
         Places the window on the virtual desktop as close to the center as possible without overlapping other windows.
         """
+        all_window_rect = sum((w.virtual for w in self._state.windows), Rectangle())
+        all_window_rect.width += window.width * 2
+        all_window_rect.height += window.height * 2
+        all_window_rect.center = self._state.screen.geometry.center
+        self._state.screen.grid.make_area(all_window_rect)
         best_spot = None
         best_score = None
         for cell, contents in self._state.screen.grid:
@@ -49,7 +56,7 @@ class CenterGravityLayout(Layout):
                             best_score = new_score
         assert best_spot is not None
         window.virtual.position = best_spot.position
-        self._state.screen.grid.set_range(window.virtual, window)
+        self._state.screen.grid.set_area(window.virtual, window)
 
     def _get_score(self, spot: Rectangle) -> float:
         horizontal_score = abs(

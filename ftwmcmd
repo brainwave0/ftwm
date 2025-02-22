@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 function print_help {
   echo 'Usage: ftwmcmd <command> <dimension> <direction>'
   echo

@@ -1,3 +1,4 @@
+import logging
 from .util import view_at
 from .window import Window
 from .state import State
@@ -6,8 +7,8 @@ from pywayland.server import Listener  # type: ignore[attr-defined]
 from wlroots.wlr_types.pointer import PointerButtonEvent
 from wlroots.wlr_types.keyboard import KeyboardKeyEvent
 
-# type: ignore[attr-defined]
-from wlroots.wlr_types import (
+
+from wlroots.wlr_types import (  # type: ignore[attr-defined]
     Scene,
     InputDevice,
     Keyboard,
@@ -38,11 +39,13 @@ def new_xdg_surface(state: State, xdg_surface: XdgSurface) -> None:
     scene_tree = Scene.xdg_surface_create(state.scene.tree, xdg_surface)
     window = Window(state, xdg_surface, scene_tree.node)
     geometry = xdg_surface.get_geometry()
-    window.virtual.size = (geometry.width, geometry.height)
+    window.width = geometry.width or 256
+    window.height = geometry.height or 256
     state.layout.place(window)
     state.windows.append(window)
-    # type: ignore[no-untyped-call]
-    xdg_surface.destroy_event.add(Listener(lambda listener, data: window.kill()))
+    xdg_surface.destroy_event.add(Listener(lambda listener, data: window.kill()))  # type: ignore[no-untyped-call]
+    if state.active_window is None:
+        state.active_window = window
 
 
 def pointer_button(state: State, event: PointerButtonEvent) -> None:
@@ -50,7 +53,7 @@ def pointer_button(state: State, event: PointerButtonEvent) -> None:
         state.paused = True
         window = view_at(state, state.cursor.x, state.cursor.y)[0]
         if window:
-            window.focus()
+            state.active_window = window
     else:
         delay_resume_panning(state)
 
@@ -68,6 +71,7 @@ def new_input(state: State, input_device: InputDevice) -> None:
         state.keyboard.key_event.add(  # type: ignore[no-untyped-call]
             Listener(lambda listener, key_event: key_press(state, key_event))
         )
+        state.reset_keyboard_focus()
     elif input_device.type == InputDeviceType.POINTER:
         state.cursor.attach_input_device(input_device)
         state.cursor.button_event.add(  # type: ignore[no-untyped-call]
@@ -88,14 +92,16 @@ def new_output(state: State, output: Output) -> None:
     if not l_output:
         logging.warning("Failed to add output to layout.")
         return
-    # type: ignore[no-untyped-call]
-    output.frame_event.add(Listener(lambda listener, data: output_frame(state)))
+    
+    output.frame_event.add(Listener(lambda listener, data: output_frame(state)))  # type: ignore[no-untyped-call]
     output.request_state_event.add(
         Listener(lambda listener, request: output_request_state(state, request))
     )  # type: ignore[no-untyped-call]
     scene_output = SceneOutput.create(state.scene, output)
     if state.scene_layout:
         state.scene_layout.add_output(l_output, scene_output)
+    dimensions = state.output_layout.get_box()
+    state.screen.geometry.size = (dimensions.width, dimensions.height)
 
 
 def output_frame(state: State) -> None:
@@ -106,7 +112,7 @@ def output_frame(state: State) -> None:
     scene_output.send_frame_done(now)
 
 
-# type: ignore[no-untyped-def]
-def output_request_state(state: State, request) -> None:
+
+def output_request_state(state: State, request) -> None:  # type: ignore[no-untyped-def]
     output = state.outputs[0]
     output.commit(request.state)

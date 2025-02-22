@@ -1,5 +1,8 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from .state import State
 from abc import ABC, abstractmethod
-from .state import State
 from .window import Window
 from .dynamic_grid import DynamicGrid
 

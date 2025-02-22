@@ -1,4 +1,3 @@
-import math
 from typing import Any, Iterator
 
 import numpy
@@ -13,8 +12,8 @@ class DynamicGrid:
 
     def __init__(self) -> None:
         self._array = numpy.array([[None, None], [None, None]])
-        self._vertical_splits: list[float] = [-math.inf, math.inf]
-        self._horizontal_splits: list[float] = [-math.inf, math.inf]
+        self._vertical_splits: list[float] = []
+        self._horizontal_splits: list[float] = []
 
     def _split(self, split: float, dim: int) -> None:
         """
@@ -46,15 +45,12 @@ class DynamicGrid:
                     self._array, index, values, axis=0 if dim == 1 else 1
                 )
 
-    def set_range(self, rectangle: Rectangle, obj: Any) -> None:
+    def set_area(self, rectangle: Rectangle, obj: Any) -> None:
         """
         Set the area given by `rectangle` to contain `obj`. The grid is split at each edge of the rectangle, and `obj` is
         copied over the cells contained in it.
         """
-        self._split(rectangle.left, 0)
-        self._split(rectangle.right, 0)
-        self._split(rectangle.top, 1)
-        self._split(rectangle.bottom, 1)
+        self.make_area(rectangle)
         for cell, _ in self:
             if cell.overlaps(rectangle):
                 self._array[
@@ -77,3 +73,10 @@ class DynamicGrid:
         Returns True if the specified area is empty.
         """
         return all(value is None for cell, value in self if cell.overlaps(rectangle))
+
+    def make_area(self, rectangle: Rectangle) -> None:
+        self._split(rectangle.left, 0)
+        self._split(rectangle.right, 0)
+        self._split(rectangle.top, 1)
+        self._split(rectangle.bottom, 1)
+        

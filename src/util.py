@@ -1,3 +1,4 @@
+import logging
 from glob import glob
 import shutil
 from .camera import Camera
@@ -52,7 +53,7 @@ def get_settings() -> ConfigParser:
     return settings
 
 
-def get_and_set_up_camera(state: State, face_detector: cv2.FaceDetectorYN) -> Camera:
+def get_and_set_up_camera(state: State) -> Camera:
     fps = state.settings.getint("Camera", "fps")
     if (
         "capture_width" in state.settings["Camera"]
@@ -65,10 +66,12 @@ def get_and_set_up_camera(state: State, face_detector: cv2.FaceDetectorYN) -> Ca
     else:
         size = None
     if "index" in state.settings["Camera"]:
+        logging.info("got camera index from settings")
         camera = Camera(state.settings.getint("Camera", "index"), size, fps)
     else:
         index = auto_camera_index()
         if index is not None:
+            logging.info("got camera index automatically")
             camera = Camera(index, size, fps)
         else:
             raise RuntimeError("Could not find a camera.")

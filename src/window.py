@@ -1,7 +1,11 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from .state import State
 from .rectangle import Rectangle
-from .state import State
 from wlroots.wlr_types.xdg_shell import XdgSurface
 from wlroots.wlr_types import SceneNode  # type: ignore[attr-defined]
+import logging
 
 
 class Window:
@@ -53,15 +57,10 @@ class Window:
         self._xdg_surface.set_size(int(self.virtual.width), max(1, other))
 
     def kill(self) -> None:
-        self._xdg_surface.send_close
+        self._xdg_surface.send_close()
         self._state.windows.remove(self)
 
-    def focus(self) -> None:
-        if self._state.active_window is not None:
-            self._state.active_window._xdg_surface.set_activated(False)
-        self._xdg_surface.set_activated(True)
-        if self._state.keyboard:
-            self._state.seat.keyboard_notify_enter(
-                self._xdg_surface.surface, self._state.keyboard
-            )
-        self._state.active_window = self
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Window):
+            return NotImplemented
+        return self.id == other.id

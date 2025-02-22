@@ -20,8 +20,7 @@ class Interface(ServiceInterface):
         self._state.layout.arrange()
 
     @method()  # type: ignore[misc]
-    # type: ignore[no-untyped-def, name-defined]
-    async def Increment(self, dimension: "s", direction: "n"):
+    async def Increment(self, dimension: "s", direction: "n"):  # type: ignore[no-untyped-def, name-defined]
         window = self._state.active_window
         if dimension not in ["width", "height"]:
             raise DBusError(  # type: ignore[no-untyped-call]
@@ -38,7 +37,7 @@ class Interface(ServiceInterface):
         else:
             current_value = getattr(window, dimension)
             new_value = increment((window.id, dimension), current_value, direction)
-            setattr(window, dimension, new_value)
+            setattr(window, dimension, int(new_value))
 
     @method()
     async def Kill(self):  # type: ignore[no-untyped-def]

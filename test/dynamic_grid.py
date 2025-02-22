@@ -6,10 +6,10 @@ def test_split():
     grid = DynamicGrid()
     assert list(grid) == []
 
-    grid.split(0, 0)
-    grid.split(0, 1)
-    grid.split(100, 0)
-    grid.split(100, 1)
+    grid._split(0, 0)
+    grid._split(0, 1)
+    grid._split(100, 0)
+    grid._split(100, 1)
     """
         0  100
       0 +--+
@@ -18,7 +18,7 @@ def test_split():
     """
     assert list(grid) == [(Rectangle(0, 0, 100, 100), None)]
 
-    grid.split(50, 0)
+    grid._split(50, 0)
     """
         0   50  100
       0 +---+---+
@@ -32,7 +32,7 @@ def test_split():
         (Rectangle(50, 0, 50, 100), None),
     ]
 
-    grid.split(200, 1)
+    grid._split(200, 1)
     """
         0   50  100
       0 +---+---+
@@ -52,7 +52,7 @@ def test_split():
         (Rectangle(50, 100, 50, 100), None),
     ]
 
-    grid.split(25, 0)
+    grid._split(25, 0)
     """
         0 25 50  100
       0 +-+-+---+
@@ -75,12 +75,12 @@ def test_split():
     ]
 
 
-def test_set_range():
+def test_set_area():
     grid = DynamicGrid()
-    grid.set_range(Rectangle(-10, -10, 20, 20), "foo")
+    grid.set_area(Rectangle(-10, -10, 20, 20), "foo")
     assert list(grid) == [(Rectangle(-10, -10, 20, 20), "foo")]
 
-    grid.set_range(Rectangle(-5, -5, 5, 5), "bar")
+    grid.set_area(Rectangle(-5, -5, 5, 5), "bar")
     """
        -10 -5  0          10
     -10 +---+---+-----------+
@@ -106,7 +106,7 @@ def test_set_range():
         (Rectangle(0, 0, 10, 10), "foo"),
     ]
 
-    grid.set_range(Rectangle(-10, -10, 20, 20), None)
+    grid.set_area(Rectangle(-10, -10, 20, 20), None)
     assert list(grid) == [
         (Rectangle(-10, -10, 5, 5), None),
         (Rectangle(-5, -10, 5, 5), None),
@@ -122,8 +122,8 @@ def test_set_range():
 
 def test_get_range():
     grid = DynamicGrid()
-    grid.set_range(Rectangle(0, 0, 10, 10), None)
-    grid.set_range(Rectangle(0, 0, 5, 5), "a")
+    grid.set_area(Rectangle(0, 0, 10, 10), None)
+    grid.set_area(Rectangle(0, 0, 5, 5), "a")
     assert list(grid) == [
         (Rectangle(0, 0, 5, 5), "a"),
         (Rectangle(5, 0, 5, 5), None),
@@ -134,7 +134,7 @@ def test_get_range():
 
 def test_expand():
     grid = DynamicGrid()
-    grid.set_range(Rectangle(0, 0, 1, 1), None)
+    grid.set_area(Rectangle(0, 0, 1, 1), None)
     grid.expand(0, 2, 2, 0)
     assert list(grid) == [
         (Rectangle(0, 0, 1, 1), None),

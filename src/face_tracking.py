@@ -36,7 +36,7 @@ def get_face_detections(
 
 
 # noinspection PyUnresolvedReferences
-def get_face_position(
+def get_face_delta(
     face_detector: cv2.FaceDetectorYN, image: ArrayLike
 ) -> Optional[tuple[float, float]]:
     center = (image.shape[1] / 2, image.shape[0] / 2)  # type: ignore
