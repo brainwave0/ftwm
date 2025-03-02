@@ -1,4 +1,3 @@
-import logging
 from .util import view_at
 from .window import Window
 from .state import State
@@ -19,7 +18,6 @@ from wlroots.wlr_types import (  # type: ignore[attr-defined]
 from wlroots.wlr_types.input_device import ButtonState, InputDeviceType
 from pywayland.protocol.wayland import WlKeyboard  # type: ignore[attr-defined]
 from wlroots.wlr_types.xdg_shell import XdgSurface
-import logging
 from wlroots.util.clock import Timespec
 
 
@@ -90,7 +88,6 @@ def new_output(state: State, output: Output) -> None:
     state.outputs.append(output)
     l_output = state.output_layout.add_auto(output)
     if not l_output:
-        logging.warning("Failed to add output to layout.")
         return
     
     output.frame_event.add(Listener(lambda listener, data: output_frame(state)))  # type: ignore[no-untyped-call]

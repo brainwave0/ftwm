@@ -5,7 +5,6 @@ if TYPE_CHECKING:
 from .rectangle import Rectangle
 from wlroots.wlr_types.xdg_shell import XdgSurface
 from wlroots.wlr_types import SceneNode  # type: ignore[attr-defined]
-import logging
 
 
 class Window:

@@ -1,8 +1,8 @@
-import logging
+from numpy import array, float64
 from .window import Window
 import cv2
 from xdg_base_dirs import xdg_config_home
-from .face_tracking import get_face_detections, get_face_delta
+from .face_tracking import FaceTracker
 from .moving_average_filter import MovingAverageFilter
 import asyncio
 from .state import State
@@ -15,6 +15,7 @@ from wlroots.wlr_types import (  # type: ignore[attr-defined]
     SceneTree,
 )
 from .util import get_and_set_up_camera
+import math
 
 
 def pan(state: State, delta: tuple[float, float]) -> None:
@@ -22,9 +23,7 @@ def pan(state: State, delta: tuple[float, float]) -> None:
     Pans windows.
 
     delta: How far to move each window from their virtual positions.
-    scale: Multiplied with delta to affect panning sensitivity.
     """
-    logging.debug("panning")
     for window in state.windows:
         window.position = (
             int(window.virtual.position[0] + delta[0]),
@@ -33,45 +32,31 @@ def pan(state: State, delta: tuple[float, float]) -> None:
 
 
 async def pan_windows_with_face(state: State) -> None:
-    logging.info("panning started")
-    input_size = (300, 300)
-    face_detector = cv2.FaceDetectorYN_create(  # type: ignore[attr-defined]
-        
-        "./assets/face_detection_yunet_2023mar.onnx",
-        "",
-        input_size,
-        score_threshold=0.5,
-    )
     scale = state.settings.getfloat("DEFAULT", "scale")
-    camera = get_and_set_up_camera(state)
-    logging.info("got camera")
     moving_average_filter = MovingAverageFilter(
         period=state.settings.getint("DEFAULT", "moving_average_period")
     )
+    frame_rate = state.settings.getfloat("DEFAULT", "frame_rate")
+    detection_rate = 1 / state.settings.getfloat("DEFAULT", "seconds_per_detection")
+    face_tracker = FaceTracker((640, 480), detection_rate, frame_rate, 0.5, "./assets/face_detection_yunet_2023mar.onnx", 96)
+    camera = get_and_set_up_camera(state)
     while True:
         if not state.paused:
             frame = camera.get_frame()
             if frame is not None:
-                frame = cv2.resize(frame, input_size)  # type: ignore
-                face_delta = get_face_delta(
-                    face_detector, frame  # type: ignore[arg-type]
-                )
-                if face_delta:
-                    window_delta = face_delta
+                point = face_tracker.get_point(frame)
+                if point is not None:
+                    frame_center = array([frame.shape[1], frame.shape[0]], dtype=float64) / 2  # type: ignore
+                    window_delta = frame_center - array(point, dtype=float64)
                     window_delta = moving_average_filter.filter(window_delta)
-                    window_delta = (window_delta[0] * scale, -window_delta[1] * scale)
-                    pan(state, window_delta)
-                else:
-                    logging.debug("no face")
-            else:
-                logging.debug("no frame")
-        await asyncio.sleep(1 / state.settings.getfloat("DEFAULT", "frame_rate"))
+                    window_delta *= array([scale], dtype=float64)
+                    window_delta *= array([-1, 1], dtype=float64)
+                    pan(state, tuple(window_delta))
+        await asyncio.sleep(1 / frame_rate)
 
 
 def delay_resume_panning(state: State) -> None:
-    logging.info("pausing")
     async def helper(state: State) -> None:
-        logging.info("un-pausing")
         await asyncio.sleep(
             state.settings.getfloat("DEFAULT", "panning_resume_delay") / 1000
         )
@@ -79,4 +64,5 @@ def delay_resume_panning(state: State) -> None:
 
     if "delay_resume_panning" in state.tasks:
         state.tasks["delay_resume_panning"].cancel()
-    state.tasks["delay_resume_panning"] = asyncio.create_task(helper(state))
+    loop = asyncio.get_running_loop()
+    state.tasks["delay_resume_panning"] = loop.create_task(helper(state))

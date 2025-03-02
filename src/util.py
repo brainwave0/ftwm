@@ -1,4 +1,3 @@
-import logging
 from glob import glob
 import shutil
 from .camera import Camera
@@ -66,12 +65,10 @@ def get_and_set_up_camera(state: State) -> Camera:
     else:
         size = None
     if "index" in state.settings["Camera"]:
-        logging.info("got camera index from settings")
         camera = Camera(state.settings.getint("Camera", "index"), size, fps)
     else:
         index = auto_camera_index()
         if index is not None:
-            logging.info("got camera index automatically")
             camera = Camera(index, size, fps)
         else:
             raise RuntimeError("Could not find a camera.")
@@ -85,8 +82,8 @@ def auto_camera_index() -> Optional[int]:
         int(device.replace("/dev/video", "")) for device in glob("/dev/video*")
     ):
         video_capture = cv2.VideoCapture(index)
-        _, frame = video_capture.read()
-        if frame is not None:
+        success, _ = video_capture.read()
+        if success:
             break
     if video_capture is not None:
         video_capture.release()

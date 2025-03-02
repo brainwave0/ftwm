@@ -4,48 +4,84 @@ from numpy.typing import ArrayLike
 import numpy
 
 import cv2
+import math
+from numpy import array, float64, float32
 
-
-def get_relative_face_area(detection: ArrayLike) -> float:
-    """
-    Calculates the area of the face relative to the size of the screen. Used for finding the biggest face which is assumed to be the closest.
-    """
-    width, height = detection[2:4]  # type: ignore
-    return width * height  # type: ignore
-
-
-def get_average_point(image: cv2.Mat, detection: ArrayLike) -> tuple[float, float]:
-    """
-    Averages the detected points for each feature of the face. This helps to reduce jitter.
-    """
-
-    # convert from 1D array to pairs
-    points = detection[0:14].reshape(-1, 2)  # type: ignore
-
-    point = reduce(lambda a, b: (a[0] + b[0], a[1] + b[1]), points)  # sum
-    return point[0] / len(points), point[1] / len(points)
-
-
-def get_face_detections(
-    face_detector: cv2.FaceDetectorYN, image: ArrayLike
-) -> Optional[Sequence[ArrayLike]]:
-    image.flags.writeable = False  # type: ignore
-    image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)  # type: ignore
-    detections = face_detector.detect(image)  # type: ignore
-    return detections  # type: ignore
-
-
-# noinspection PyUnresolvedReferences
-def get_face_delta(
-    face_detector: cv2.FaceDetectorYN, image: ArrayLike
-) -> Optional[tuple[float, float]]:
-    center = (image.shape[1] / 2, image.shape[0] / 2)  # type: ignore
-    detections = get_face_detections(face_detector, image)[1]  # type: ignore
-    if detections is not None:
-        closest: ArrayLike = max(
-            detections, key=lambda x: get_relative_face_area(x)  # type: ignore
+class FaceTracker:
+    def __init__(self, detector_input_size: tuple[int, int], detection_rate: float, frame_rate: float, detection_threshold: float, model_path: str, bounding_box_size: float):
+        self._detector_input_size = detector_input_size
+        self._face_detector = cv2.FaceDetectorYN_create(  # type: ignore[attr-defined]
+            model_path,
+            "",
+            detector_input_size,
+            score_threshold=detection_threshold,
         )
-        average_point = get_average_point(image, closest)  # type: ignore
-        return average_point[0] - center[0], average_point[1] - center[1]
-    else:
+        self._tracker = None
+        self._frames_per_detection = math.ceil(frame_rate / detection_rate)
+        self._frame_num = 0  # the current frame number, modulo _frames_per_detection
+        self._point: Optional[tuple[float, float]] = None
+        self._bounding_box_size = bounding_box_size
+        self.tracking_succeeded = False
+
+        
+    def _get_face_area(self, detection: ArrayLike) -> float:
+        width, height = detection[2:4]  # type: ignore
+        return width * height  # type: ignore
+
+
+    # noinspection PyUnresolvedReferences
+    def _get_detection_point(self, frame: ArrayLike) -> Optional[tuple[float, float]]:
+        """
+        Find the bounding box of the largest face in the frame and return its center.
+        """
+        detections = self._face_detector.detect(frame)[1]
+        if detections is not None:
+            closest: ArrayLike = max(
+                detections, key=lambda x: self._get_face_area(x)
+            )
+            top_left, dimensions  = closest[0:14].reshape(-1, 2)[0:2]  # type: ignore
+            # result = tuple(array(top_left, dtype=float64) + array(dimensions, dtype=float64) / 2)
+            result = tuple(array(closest[8:10], dtype=float64))  # nose tip
+            self._init_tracker(frame, result)
+            return result
         return None
+
+    def _get_tracker_point(self, frame: ArrayLike) -> Optional[tuple[float, float]]:
+        if self._tracker is not None:
+            success, box = self._tracker.update(frame)  # type: ignore
+            if success:
+                x, y, w, h = box
+                result = x + w / 2, y + h / 2
+                if self._in_frame(result, frame):
+                    self.tracking_succeeded = True
+                    return result
+        self.tracking_succeeded = False
+        return None
+
+    def get_point(self, frame: ArrayLike) -> Optional[tuple[tuple[float, float], bool]]:
+        # prepare the frame
+        frame_size = array([frame.shape[1], frame.shape[0]], dtype=float64)  # type: ignore
+        if frame is not None:
+            # frame.flags.writeable = False  # type: ignore
+            frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)  # type: ignore
+            frame = cv2.resize(frame, self._detector_input_size)  # type: ignore
+
+            point = self._get_tracker_point(frame) or self._get_detection_point(frame)              
+            if point is not None:
+                self._point = tuple(array(frame_size, dtype=float64) / array(self._detector_input_size, dtype=float64) * array(point, dtype=float64))  # scale back to actual frame size
+        self._frame_num = (self._frame_num + 1) % self._frames_per_detection
+        return self._point 
+
+    def _init_tracker(self, frame: ArrayLike, point: tuple[float, float]) -> None:
+        box = cv2.boundingRect(array(self._bounding_box_points(point), dtype=float32))
+        self._tracker = cv2.legacy.TrackerMOSSE.create()
+        if not self._tracker.init(frame, box):  # type: ignore
+            raise RuntimeError("tracker initialization failed")
+
+    def _in_frame(self, point: tuple[float, float], frame: ArrayLike) -> bool:
+        height = frame.shape[0]
+        width = frame.shape[1]
+        return self._bounding_box_size / 2 < point[0] < width - self._bounding_box_size / 2 and self._bounding_box_size / 2 < point[1] < height - self._bounding_box_size / 2
+
+    def _bounding_box_points(self, point: tuple[float, float]) -> tuple[tuple[float, float]]:
+        return [array(point, dtype=float32) - array(self._bounding_box_size / 2, dtype=float32), array(point, dtype=float32) + array(self._bounding_box_size / 2, dtype=float32)]
