@@ -17,8 +17,6 @@ class FaceTracker:
             score_threshold=detection_threshold,
         )
         self._tracker = None
-        self._frames_per_detection = math.ceil(frame_rate / detection_rate)
-        self._frame_num = 0  # the current frame number, modulo _frames_per_detection
         self._point: Optional[tuple[float, float]] = None
         self._bounding_box_size = bounding_box_size
         self.tracking_succeeded = False
@@ -69,7 +67,6 @@ class FaceTracker:
             point = self._get_tracker_point(frame) or self._get_detection_point(frame)              
             if point is not None:
                 self._point = tuple(array(frame_size, dtype=float64) / array(self._detector_input_size, dtype=float64) * array(point, dtype=float64))  # scale back to actual frame size
-        self._frame_num = (self._frame_num + 1) % self._frames_per_detection
         return self._point 
 
     def _init_tracker(self, frame: ArrayLike, point: tuple[float, float]) -> None:
