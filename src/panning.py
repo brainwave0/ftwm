@@ -44,7 +44,7 @@ async def pan_windows_with_face(state: State) -> None:
         if not state.paused:
             frame = camera.get_frame()
             if frame is not None:
-                point = face_tracker.get_point(frame)
+                point = await face_tracker.get_point(frame)
                 if point is not None:
                     frame_center = array([frame.shape[1], frame.shape[0]], dtype=float64) / 2  # type: ignore
                     window_delta = frame_center - array(point, dtype=float64)

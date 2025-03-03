@@ -14,14 +14,9 @@ class Camera:
         if frame_size is not None:
             self._video_capture.set(cv2.CAP_PROP_FRAME_WIDTH, frame_size[0])
             self._video_capture.set(cv2.CAP_PROP_FRAME_HEIGHT, frame_size[1])
-        Thread(target=self._set_frames, daemon=True).start()
 
-    def get_frame(self) -> Optional[ArrayLike]:
-        return self._frame
-
-    def _set_frames(self) -> None:
-        while True:
-            success, frame = self._video_capture.read()
-            if not success:
-                raise RuntimeError("Failed to get frame from camera.")
-            self._frame = frame
+    async def get_frame(self) -> ArrayLike:
+        success, frame = self._video_capture.read()
+        if not success:
+            raise RuntimeError("Failed to get frame from camera.")
+        return frame
