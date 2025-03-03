@@ -38,7 +38,6 @@ class FaceTracker:
                 detections, key=lambda x: self._get_face_area(x)
             )
             top_left, dimensions  = closest[0:14].reshape(-1, 2)[0:2]  # type: ignore
-            # result = tuple(array(top_left, dtype=float64) + array(dimensions, dtype=float64) / 2)
 
             # nose tip
             result = tuple(array(closest[8:10], dtype=float64))  # type: ignore
@@ -63,7 +62,6 @@ class FaceTracker:
         # prepare the frame
         frame_size = array([frame.shape[1], frame.shape[0]], dtype=float64)  # type: ignore
         if frame is not None:
-            # frame.flags.writeable = False  # type: ignore
             frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)  # type: ignore
             frame = cv2.resize(frame, self._detector_input_size)  # type: ignore
 
