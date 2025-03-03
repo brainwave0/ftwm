@@ -31,7 +31,7 @@ async def dispatch_events(state: State) -> None:
     while True:
         loop.dispatch(0)
         state.display.flush_clients()
-        await asyncio.sleep(0)
+        await asyncio.sleep(1 / state.settings.getfloat("DEFAULT", "frame_rate"))
 
 
 async def main():
