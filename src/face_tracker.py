@@ -84,4 +84,4 @@ class FaceTracker:
         return self._bounding_box_size / 2 < point[0] < width - self._bounding_box_size / 2 and self._bounding_box_size / 2 < point[1] < height - self._bounding_box_size / 2  # type: ignore
 
     def _bounding_box_points(self, point: tuple[float, float]) -> tuple[tuple[float, float]]:
-        return [array(point, dtype=float32) - array(self._bounding_box_size / 2, dtype=float32), array(point, dtype=float32) + array(self._bounding_box_size / 2, dtype=float32)]
+        return tuple(array(point, dtype=float32) - array(self._bounding_box_size / 2, dtype=float32)), tuple(array(point, dtype=float32) + array(self._bounding_box_size / 2, dtype=float32))  # type: ignore
