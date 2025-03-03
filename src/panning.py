@@ -37,8 +37,7 @@ async def pan_windows_with_face(state: State) -> None:
         period=state.settings.getint("DEFAULT", "moving_average_period")
     )
     frame_rate = state.settings.getfloat("DEFAULT", "frame_rate")
-    detection_rate = 1 / state.settings.getfloat("DEFAULT", "seconds_per_detection")
-    face_tracker = FaceTracker((640, 480), detection_rate, frame_rate, 0.5, "./assets/face_detection_yunet_2023mar.onnx", 96)
+    face_tracker = FaceTracker((640, 480), 0.5, "./assets/face_detection_yunet_2023mar.onnx", 96)
     camera = get_and_set_up_camera(state)
     while True:
         if not state.paused:

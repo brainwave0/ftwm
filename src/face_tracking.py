@@ -8,7 +8,7 @@ import math
 from numpy import array, float64, float32
 
 class FaceTracker:
-    def __init__(self, detector_input_size: tuple[int, int], detection_rate: float, frame_rate: float, detection_threshold: float, model_path: str, bounding_box_size: float):
+    def __init__(self, detector_input_size: tuple[int, int], detection_threshold: float, model_path: str, bounding_box_size: float):
         self._detector_input_size = detector_input_size
         self._face_detector = cv2.FaceDetectorYN_create(  # type: ignore[attr-defined]
             model_path,
