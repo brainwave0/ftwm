@@ -50,7 +50,7 @@ async def pan_windows_with_face(state: State) -> None:
                 if point is not None:
                     frame_center = array([frame.shape[1], frame.shape[0]], dtype=float64) / 2  # type: ignore
                     window_delta = frame_center - array(point, dtype=float64)
-                    window_delta = moving_average_filter.filter(window_delta)
+                    window_delta = moving_average_filter.filter(tuple(window_delta))  # type: ignore
                     window_delta *= array([scale], dtype=float64)
                     window_delta *= array([-1, 1], dtype=float64)
                     pan(state, tuple(window_delta))

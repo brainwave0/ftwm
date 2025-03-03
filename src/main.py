@@ -34,7 +34,7 @@ async def dispatch_events(state: State) -> None:
         await asyncio.sleep(1 / state.settings.getfloat("DEFAULT", "frame_rate"))
 
 
-async def main():
+async def main() -> None:
     # initialization
     settings = get_settings()
     windows: list[Window] = []
