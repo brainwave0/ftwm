@@ -1,4 +1,4 @@
-from src.face_tracking import FaceTracker
+from src.face_tracker import FaceTracker
 import cv2
 from src.camera import Camera
 from src.util import auto_camera_index

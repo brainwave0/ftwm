@@ -2,7 +2,7 @@ from numpy import array, float64
 from .window import Window
 import cv2
 from xdg_base_dirs import xdg_config_home
-from .face_tracking import FaceTracker
+from .face_tracker import FaceTracker
 from .moving_average_filter import MovingAverageFilter
 import asyncio
 from .state import State
