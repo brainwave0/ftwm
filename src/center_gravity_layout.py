@@ -15,6 +15,13 @@ class CenterGravityLayout(Layout):
     def __init__(self, state: State):
         self._state = state
 
+    def arrange(self) -> None:
+        self._state.screen.grid = DynamicGrid()
+        for window in sorted(
+            self._state.windows, key=lambda window: window.virtual.area(), reverse=True
+        ):
+            self.place(window)
+
     def place(self, window: Window) -> None:
         """
         Places the window on the virtual desktop as close to the center as possible without overlapping other windows.
