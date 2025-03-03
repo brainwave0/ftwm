@@ -16,7 +16,7 @@ class FaceTracker:
             detector_input_size,
             score_threshold=detection_threshold,
         )
-        self._tracker = None
+        self._tracker: Optional[cv2.legacy.TrackerMOSSE] = None
         self._point: Optional[tuple[float, float]] = None
         self._bounding_box_size = bounding_box_size
         self.tracking_succeeded = False
@@ -39,7 +39,10 @@ class FaceTracker:
             )
             top_left, dimensions  = closest[0:14].reshape(-1, 2)[0:2]  # type: ignore
             # result = tuple(array(top_left, dtype=float64) + array(dimensions, dtype=float64) / 2)
-            result = tuple(array(closest[8:10], dtype=float64))  # nose tip
+
+            # nose tip
+            result = tuple(array(closest[8:10], dtype=float64))  # type: ignore
+
             self._init_tracker(frame, result)
             return result
         return None
@@ -56,7 +59,7 @@ class FaceTracker:
         self.tracking_succeeded = False
         return None
 
-    def get_point(self, frame: ArrayLike) -> Optional[tuple[tuple[float, float], bool]]:
+    def get_point(self, frame: ArrayLike) -> Optional[tuple[float, float]]:
         # prepare the frame
         frame_size = array([frame.shape[1], frame.shape[0]], dtype=float64)  # type: ignore
         if frame is not None:
@@ -76,9 +79,9 @@ class FaceTracker:
             raise RuntimeError("tracker initialization failed")
 
     def _in_frame(self, point: tuple[float, float], frame: ArrayLike) -> bool:
-        height = frame.shape[0]
-        width = frame.shape[1]
-        return self._bounding_box_size / 2 < point[0] < width - self._bounding_box_size / 2 and self._bounding_box_size / 2 < point[1] < height - self._bounding_box_size / 2
+        height = frame.shape[0]  # type: ignore
+        width = frame.shape[1]  # type: ignore
+        return self._bounding_box_size / 2 < point[0] < width - self._bounding_box_size / 2 and self._bounding_box_size / 2 < point[1] < height - self._bounding_box_size / 2  # type: ignore
 
     def _bounding_box_points(self, point: tuple[float, float]) -> tuple[tuple[float, float]]:
         return [array(point, dtype=float32) - array(self._bounding_box_size / 2, dtype=float32), array(point, dtype=float32) + array(self._bounding_box_size / 2, dtype=float32)]
