@@ -24,11 +24,7 @@ def pan(state: State, delta: tuple[float, float]) -> None:
 
     delta: How far to move each window from their virtual positions.
     """
-    for window in state.windows:
-        window.position = (
-            int(window.virtual.position[0] + delta[0]),
-            int(window.virtual.position[1] + delta[1]),
-        )
+    state.scene.tree.node.set_position(*tuple(map(int, delta)))
 
 
 async def pan_windows_with_face(state: State) -> None:
