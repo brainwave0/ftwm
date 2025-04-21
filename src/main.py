@@ -28,7 +28,7 @@ import os
 
 async def dispatch_events(state: State) -> None:
     loop = state.display.get_event_loop()
-    state.settings.getfloat("DEFAULT", "frame_rate")
+    frame_rate = state.settings.getfloat("DEFAULT", "frame_rate")
     while True:
         loop.dispatch(0)
         state.display.flush_clients()
