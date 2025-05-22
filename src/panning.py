@@ -24,7 +24,7 @@ def pan(state: State, delta: tuple[float, float]) -> None:
 
     delta: How far to move each window from their virtual positions.
     """
-    state.scene.tree.node.set_position(*tuple(map(int, delta)))
+    state.window_group_tree.node.set_position(*tuple(map(int, delta)))
 
 
 async def pan_windows_with_face(state: State) -> None:
@@ -48,7 +48,8 @@ async def pan_windows_with_face(state: State) -> None:
                 window_delta = moving_average_filter.filter(tuple(window_delta))  # type: ignore
                 window_delta *= array([scale], dtype=float64)
                 window_delta *= array([-1, 1], dtype=float64)
-                pan(state, tuple(window_delta))
+                pan(state, window_delta)  # type: ignore[arg-type]
+                state.window_delta = window_delta  # type: ignore[assignment]
         await asyncio.sleep(1 / frame_rate)
 
 

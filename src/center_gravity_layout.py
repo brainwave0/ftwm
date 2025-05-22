@@ -63,6 +63,7 @@ class CenterGravityLayout(Layout):
                             best_score = new_score
         assert best_spot is not None
         window.virtual.position = best_spot.position
+        window.position = tuple(map(int, best_spot.position))  # type: ignore[assignment]
         self._state.screen.grid.set_area(window.virtual, window)
 
     def _get_score(self, spot: Rectangle) -> float:

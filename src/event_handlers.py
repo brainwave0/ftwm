@@ -3,7 +3,7 @@ from .window import Window
 from .state import State
 from .panning import delay_resume_panning
 from pywayland.server import Listener  # type: ignore[attr-defined]
-from wlroots.wlr_types.pointer import PointerButtonEvent
+from wlroots.wlr_types.pointer import PointerButtonEvent, PointerMotionEvent, PointerMotionAbsoluteEvent
 from wlroots.wlr_types.keyboard import KeyboardKeyEvent
 
 
@@ -16,9 +16,14 @@ from wlroots.wlr_types import (  # type: ignore[attr-defined]
     Output,
 )
 from wlroots.wlr_types.input_device import ButtonState, InputDeviceType
-from pywayland.protocol.wayland import WlKeyboard  # type: ignore[attr-defined]
+from pywayland.protocol.wayland import WlKeyboard, WlSeat  # type: ignore[attr-defined]
 from wlroots.wlr_types.xdg_shell import XdgSurface
 from wlroots.util.clock import Timespec
+from wlroots.wlr_types.cursor import WarpMode
+from wlroots.wlr_types import XCursorManager  # type: ignore[attr-defined]
+from .rectangle import Rectangle
+import numpy
+from xkbcommon import xkb  # type: ignore[import-untyped]
 
 
 def register_events(state: State) -> None:
@@ -31,10 +36,15 @@ def register_events(state: State) -> None:
     state.backend.new_output_event.add(
         Listener(lambda listener, output: new_output(state, output))
     )
+    state.seat.request_set_cursor_event.add(Listener(lambda listener, event: set_cursor(state, event)))  # type: ignore[no-untyped-call]
+    state.cursor.motion_event.add(Listener(lambda listener, event: cursor_motion(state, event)))  # type: ignore[no-untyped-call]
+    state.cursor.motion_absolute_event.add(Listener(lambda listener, event: cursor_motion_absolute(state, event)))  # type: ignore[no-untyped-call]
+    state.cursor.axis_event.add(Listener(lambda listener, event: cursor_axis(state, event)))  # type: ignore[no-untyped-call]
+    state.cursor.frame_event.add(Listener(lambda listener, event: cursor_frame(state)))  # type: ignore[no-untyped-call]
 
 
 def new_xdg_surface(state: State, xdg_surface: XdgSurface) -> None:
-    scene_tree = Scene.xdg_surface_create(state.scene.tree, xdg_surface)
+    scene_tree = Scene.xdg_surface_create(state.window_group_tree, xdg_surface)
     window = Window(state, xdg_surface, scene_tree.node)
     geometry = xdg_surface.get_geometry()
     window.width = geometry.width or 256
@@ -47,9 +57,12 @@ def new_xdg_surface(state: State, xdg_surface: XdgSurface) -> None:
 
 
 def pointer_button(state: State, event: PointerButtonEvent) -> None:
+    state.seat.pointer_notify_button(event.time_msec, event.button, event.button_state)
     if event.button_state == ButtonState.PRESSED:
         state.paused = True
-        window = view_at(state, state.cursor.x, state.cursor.y)[0]
+        translated_coordinates = (state.cursor.x - state.window_delta[0], state.cursor.y + state.window_delta[1])
+        translated_coordinates = tuple(numpy.array([state.cursor.x, state.cursor.y]) - numpy.array([state.window_group_tree.node.x, state.window_group_tree.node.y]))
+        window = state.window_at(*translated_coordinates)
         if window:
             state.active_window = window
     else:
@@ -61,20 +74,33 @@ def key_press(state: State, key_event: KeyboardKeyEvent) -> None:
         state.paused = True
     else:
         delay_resume_panning(state)
+    state.seat.keyboard_notify_key(key_event)
 
 
 def new_input(state: State, input_device: InputDevice) -> None:
     if input_device.type == InputDeviceType.KEYBOARD:
         state.keyboard = Keyboard.from_input_device(input_device)
+        xkb_context = xkb.Context()
+        keymap = xkb_context.keymap_new_from_names()
+        state.keyboard.set_keymap(keymap)
+        state.keyboard.set_repeat_info(25, 600)
+        state.seat.set_keyboard(state.keyboard)
         state.keyboard.key_event.add(  # type: ignore[no-untyped-call]
             Listener(lambda listener, key_event: key_press(state, key_event))
         )
+        state.keyboard.modifiers_event.add(Listener(lambda listener, data: keyboard_modifiers(state)))  # type: ignore[no-untyped-call]
         state.reset_keyboard_focus()
     elif input_device.type == InputDeviceType.POINTER:
         state.cursor.attach_input_device(input_device)
         state.cursor.button_event.add(  # type: ignore[no-untyped-call]
             Listener(lambda listener, event: pointer_button(state, event))
         )
+    capabilities = 0
+    if state.cursor is not None:
+        capabilities |= WlSeat.capability.pointer
+    if state.keyboard is not None:
+        capabilities |= WlSeat.capability.keyboard
+    state.seat.set_capabilities(capabilities)
 
 
 def new_output(state: State, output: Output) -> None:
@@ -113,3 +139,52 @@ def output_frame(state: State) -> None:
 def output_request_state(state: State, request) -> None:  # type: ignore[no-untyped-def]
     output = state.outputs[0]
     output.commit(request.state)
+
+def set_cursor(state: State, event) -> None:  # type: ignore[no-untyped-def]
+    state.cursor.set_surface(event.surface, event.hotspot)
+
+def process_cursor_motion(state: State, time) -> None:  # type: ignore[no-untyped-def]
+    view, surface, sx, sy = view_at(state, state.cursor.x, state.cursor.y)    
+    if view is None:
+        state.cursor.set_xcursor(state.xcursor_manager, "default")
+    if surface is None:
+        # Clear pointer focus so future button events and such are not sent
+        # to the last client to have the cursor over it.
+        state.seat.pointer_clear_focus()
+    else:
+        # Send pointer enter and motion events.
+        state.seat.pointer_notify_enter(surface, sx, sy)
+        state.seat.pointer_notify_motion(time, sx, sy)
+
+def cursor_motion_absolute(state: State, event: PointerMotionAbsoluteEvent) -> None:
+    state.cursor.warp(
+        WarpMode.AbsoluteClosest,
+        event.x,
+        event.y,
+        input_device=event.pointer.base,
+    )
+    process_cursor_motion(state, event.time_msec)
+
+def cursor_axis(state: State, event) -> None:  # type: ignore[no-untyped-def]
+    state.seat.pointer_notify_axis(
+        event.time_msec,
+        event.orientation,
+        event.delta,
+        event.delta_discrete,
+        event.source,
+    )
+
+def cursor_frame(state: State) -> None:
+    state.seat.pointer_notify_frame()
+
+def cursor_motion(state: State, event: PointerMotionEvent) -> None:
+    state.cursor.move(
+        event.delta_x,
+        event.delta_y,
+        input_device=event.pointer.base,
+    )
+    process_cursor_motion(state, event.time_msec)
+
+def keyboard_modifiers(state: State) -> None:
+    if state.keyboard is not None:
+        state.seat.keyboard_notify_modifiers(state.keyboard.modifiers)

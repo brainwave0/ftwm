@@ -1,10 +1,11 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 if TYPE_CHECKING:
     from .state import State
 from abc import ABC, abstractmethod
 from .window import Window
 from .dynamic_grid import DynamicGrid
+from .rectangle import Rectangle
 
 
 class Layout(ABC):
@@ -18,3 +19,6 @@ class Layout(ABC):
     @abstractmethod
     def place(self, window: Window) -> None:
         pass
+
+    def window_at(self, x: int, y: int) -> Optional[Window]:
+        return next((i for i in self._state.windows if Rectangle(x, y, 0, 0) in i.virtual), None)

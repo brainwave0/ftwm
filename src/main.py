@@ -67,6 +67,7 @@ async def main() -> None:
                 renderer,
                 output_layout,
                 display,
+                xcursor_manager
             )
             socket = display.add_socket()
             register_events(state)

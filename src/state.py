@@ -20,11 +20,14 @@ if TYPE_CHECKING:
         Display,
         OutputLayout,
         SceneLayout,
+        XCursorManager,
     )
     from wlroots.allocator import Allocator
     from wlroots.renderer import Renderer
     from .layout import Layout
-
+from wlroots.wlr_types import SceneTree  # type: ignore[attr-defined]
+import numpy
+from .rectangle import Rectangle
 
 class State:
     def __init__(
@@ -44,6 +47,7 @@ class State:
         renderer: Renderer,
         output_layout: OutputLayout,
         display: Display,
+        xcursor_manager: XCursorManager
     ):
         self.settings = settings
         self.windows = windows
@@ -65,6 +69,9 @@ class State:
         self.output_layout = output_layout
         self.display = display
         self.layout = CenterGravityLayout(self)
+        self.xcursor_manager = xcursor_manager
+        self.window_delta = (0, 0)
+        self.window_group_tree = SceneTree.create(scene.tree)
 
     def new_id(self) -> int:
         self._prev_id += 1
@@ -78,6 +85,7 @@ class State:
     def active_window(self, window: Window) -> None:
         if self._active_window is not None:
             self._active_window._xdg_surface.set_activated(False)
+        window._scene_node.raise_to_top()
         window._xdg_surface.set_activated(True)
         if self.keyboard:
             self.reset_keyboard_focus()
@@ -90,6 +98,7 @@ class State:
     def reset_keyboard_focus(self) -> None:
         assert self.keyboard is not None
         if self.active_window is not None:
+            self.seat.keyboard_clear_focus()
             self.seat.keyboard_notify_enter(
                 self.active_window._xdg_surface.surface, self.keyboard
             )
@@ -97,3 +106,6 @@ class State:
     def reset_active_window(self) -> None:
         self.active_window = self.windows[-1]
         
+
+    def window_at(self, x: float, y: float) -> Optional[Window]:
+        return next((i for i in self.windows if Rectangle(x, y, 0, 0) in i.virtual), None)
