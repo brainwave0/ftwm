@@ -24,6 +24,7 @@ from wlroots.wlr_types import XCursorManager  # type: ignore[attr-defined]
 from .rectangle import Rectangle
 import numpy
 from xkbcommon import xkb  # type: ignore[import-untyped]
+import logging
 
 
 def register_events(state: State) -> None:
@@ -47,25 +48,30 @@ def new_xdg_surface(state: State, xdg_surface: XdgSurface) -> None:
     scene_tree = Scene.xdg_surface_create(state.window_group_tree, xdg_surface)
     window = Window(state, xdg_surface, scene_tree.node)
     geometry = xdg_surface.get_geometry()
-    window.width = geometry.width or 256
-    window.height = geometry.height or 256
+    window.set_width(geometry.width or 256)
+    window.set_height(geometry.height or 256)
     state.layout.place(window)
     state.windows.append(window)
     xdg_surface.destroy_event.add(Listener(lambda listener, data: window.kill()))  # type: ignore[no-untyped-call]
-    if state.active_window is None:
-        state.active_window = window
+    if state.get_active_window() is None:
+        state.set_active_window(window)
 
 
 def pointer_button(state: State, event: PointerButtonEvent) -> None:
+    logging.info("pointer button event")
     state.seat.pointer_notify_button(event.time_msec, event.button, event.button_state)
     if event.button_state == ButtonState.PRESSED:
+        logging.info("button pressed")
         state.paused = True
-        translated_coordinates = (state.cursor.x - state.window_delta[0], state.cursor.y + state.window_delta[1])
-        translated_coordinates = tuple(numpy.array([state.cursor.x, state.cursor.y]) - numpy.array([state.window_group_tree.node.x, state.window_group_tree.node.y]))
-        window = state.window_at(*translated_coordinates)
+        relative_coordinates = tuple(numpy.array([state.cursor.x, state.cursor.y]) - numpy.array([state.window_group_tree.node.x, state.window_group_tree.node.y]))
+        window = state.window_at(*relative_coordinates)
         if window:
-            state.active_window = window
+            logging.info("found window")
+            state.set_active_window(window)
+        else:
+            logging.info("did not find window")
     else:
+        logging.info("button released")
         delay_resume_panning(state)
 
 
@@ -124,7 +130,7 @@ def new_output(state: State, output: Output) -> None:
     if state.scene_layout:
         state.scene_layout.add_output(l_output, scene_output)
     dimensions = state.output_layout.get_box()
-    state.screen.geometry.size = (dimensions.width, dimensions.height)
+    state.screen.geometry.set_size((dimensions.width, dimensions.height))
 
 
 def output_frame(state: State) -> None:

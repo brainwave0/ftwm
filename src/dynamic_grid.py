@@ -54,8 +54,8 @@ class DynamicGrid:
         for cell, _ in self:
             if cell.overlaps(rectangle):
                 self._array[
-                    self._horizontal_splits.index(cell.top),
-                    self._vertical_splits.index(cell.left),
+                    self._horizontal_splits.index(cell.get_top()),
+                    self._vertical_splits.index(cell.get_left()),
                 ] = obj
 
     def __iter__(self) -> Iterator[tuple[Rectangle, Any]]:
@@ -75,8 +75,8 @@ class DynamicGrid:
         return all(value is None for cell, value in self if cell.overlaps(rectangle))
 
     def make_area(self, rectangle: Rectangle) -> None:
-        self._split(rectangle.left, 0)
-        self._split(rectangle.right, 0)
-        self._split(rectangle.top, 1)
-        self._split(rectangle.bottom, 1)
+        self._split(rectangle.get_left(), 0)
+        self._split(rectangle.get_right(), 0)
+        self._split(rectangle.get_top(), 1)
+        self._split(rectangle.get_bottom(), 1)
         

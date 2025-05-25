@@ -6,157 +6,155 @@ class Rectangle:
         self, left: float = 0, top: float = 0, width: float = 0, height: float = 0
     ) -> None:
         assert width >= 0 and height >= 0
-        self.top = top
-        self.left = left
-        self.width = width
-        self.height = height
+        self._top = top
+        self._left = left
+        self._width = width
+        self._height = height
 
-    @property
-    def right(self) -> float:
-        return self.left + self.width
+    def get_top(self) -> float:
+        return self._top
 
-    @right.setter
-    def right(self, other: float) -> None:
-        self.left += self.left - other
+    def set_top(self, other: float) -> None:
+        self._top = other
 
-    @property
-    def bottom(self) -> float:
-        return self.top + self.height
+    def get_left(self) -> float:
+        return self._left
 
-    @bottom.setter
-    def bottom(self, other: float) -> None:
-        self.top += self.top - other
+    def set_left(self, other: float) -> None:
+        self._left = other
 
-    @property
-    def top_center(self) -> tuple[float, float]:
-        return self.left + self.width / 2, self.top
+    def get_width(self) -> float:
+        return self._width
 
-    @top_center.setter
-    def top_center(self, other: tuple[float, float]) -> None:
-        self.left = other[0] - self.width / 2
-        self.top = other[1]
+    def set_width(self, other: float) -> None:
+        self._width = other
 
-    @property
-    def right_center(self) -> tuple[float, float]:
-        return self.left + self.width, self.top + self.height / 2
+    def get_height(self) -> float:
+        return self._height
 
-    @right_center.setter
-    def right_center(self, other: tuple[float, float]) -> None:
-        self.left = other[0] - self.width
-        self.top = other[1] - self.height / 2
+    def set_height(self, other: float) -> None:
+        self._height = other
 
-    @property
-    def bottom_center(self) -> tuple[float, float]:
-        return self.left + self.width / 2, self.top + self.height
+    def get_right(self) -> float:
+        return self.get_left() + self.get_width()
 
-    @bottom_center.setter
-    def bottom_center(self, other: tuple[float, float]) -> None:
-        self.left = other[0] - self.width / 2
-        self.top = other[1] - self.height
+    def set_right(self, other: float) -> None:
+        self.set_left(self.get_left() + (self.get_left() - other))
 
-    @property
-    def center(self) -> tuple[float, float]:
-        return self.left + self.width / 2, self.top + self.height / 2
+    def get_bottom(self) -> float:
+        return self.get_top() + self.get_height()
 
-    @center.setter
-    def center(self, other: tuple[float, float]) -> None:
-        self.left = other[0] - self.width / 2
-        self.top = other[1] - self.height / 2
+    def set_bottom(self, other: float) -> None:
+        self.set_top(self.get_top() + (self.get_top() - other))
 
-    @property
-    def size(self) -> tuple[float, float]:
-        return self.width, self.height
+    def get_top_center(self) -> tuple[float, float]:
+        return self.get_left() + self.get_width() / 2, self.get_top()
 
-    @size.setter
-    def size(self, other: tuple[float, float]) -> None:
-        self.width = other[0]
-        self.height = other[1]
+    def set_top_center(self, other: tuple[float, float]) -> None:
+        self.set_left(other[0] - self.get_width() / 2)
+        self.set_top(other[1])
 
-    @property
-    def top_left(self) -> tuple[float, float]:
-        return self.left, self.top
+    def get_right_center(self) -> tuple[float, float]:
+        return self.get_left() + self.get_width(), self.get_top() + self.get_height() / 2
 
-    @top_left.setter
-    def top_left(self, other: tuple[float, float]) -> None:
-        self.left = other[0]
-        self.top = other[1]
+    def set_right_center(self, other: tuple[float, float]) -> None:
+        self.set_left(other[0] - self.get_width())
+        self.set_top(other[1] - self.get_height() / 2)
 
-    @property
-    def position(self) -> tuple[float, float]:
-        return self.top_left
+    def get_bottom_center(self) -> tuple[float, float]:
+        return self.get_left() + self.get_width() / 2, self.get_top() + self.get_height()
 
-    @position.setter
-    def position(self, other: tuple[float, float]) -> None:
-        self.top_left = other
+    def set_bottom_center(self, other: tuple[float, float]) -> None:
+        self.set_left(other[0] - self.get_width() / 2)
+        self.set_top(other[1] - self.get_height())
 
-    @property
-    def top_right(self) -> tuple[float, float]:
-        return self.left + self.width, self.top
+    def get_center(self) -> tuple[float, float]:
+        return self.get_left() + self.get_width() / 2, self.get_top() + self.get_height() / 2
 
-    @top_right.setter
-    def top_right(self, other: tuple[float, float]) -> None:
-        self.left = other[0] - self.width
-        self.top = other[1]
+    def set_center(self, other: tuple[float, float]) -> None:
+        self.set_left(other[0] - self.get_width() / 2)
+        self.set_top(other[1] - self.get_height() / 2)
 
-    @property
-    def bottom_right(self) -> tuple[float, float]:
-        return self.left + self.width, self.top + self.height
+    def get_size(self) -> tuple[float, float]:
+        return self.get_width(), self.get_height()
 
-    @bottom_right.setter
-    def bottom_right(self, other: tuple[float, float]) -> None:
-        self.left = other[0] - self.width
-        self.top = other[1] - self.height
+    def set_size(self, other: tuple[float, float]) -> None:
+        self.set_width(other[0])
+        self.set_height(other[1])
 
-    @property
-    def bottom_left(self) -> tuple[float, float]:
-        return self.left, self.top + self.height
+    def get_top_left(self) -> tuple[float, float]:
+        return self.get_left(), self.get_top()
 
-    @bottom_left.setter
-    def bottom_left(self, other: tuple[float, float]) -> None:
-        self.left = other[0]
-        self.top = other[1] - self.height
+    def set_top_left(self, other: tuple[float, float]) -> None:
+        self.set_left(other[0])
+        self.set_top(other[1])
 
-    @property
-    def left_center(self) -> tuple[float, float]:
-        return self.left, self.top + self.height / 2
+    def get_position(self) -> tuple[float, float]:
+        return self.get_top_left()
 
-    @left_center.setter
-    def left_center(self, other: tuple[float, float]) -> None:
-        self.left = other[0]
-        self.top = other[1] - self.height / 2
+    def set_position(self, other: tuple[float, float]) -> None:
+        self.set_top_left(other)
+
+    def get_top_right(self) -> tuple[float, float]:
+        return self.get_left() + self.get_width(), self.get_top()
+
+    def set_top_right(self, other: tuple[float, float]) -> None:
+        self.set_left(other[0] - self.get_width())
+        self.set_top(other[1])
+
+    def get_bottom_right(self) -> tuple[float, float]:
+        return self.get_left() + self.get_width(), self.get_top() + self.get_height()
+
+    def set_bottom_right(self, other: tuple[float, float]) -> None:
+        self.set_left(other[0] - self.get_width())
+        self.set_top(other[1] - self.get_height())
+
+    def get_bottom_left(self) -> tuple[float, float]:
+        return self.get_left(), self.get_top() + self.get_height()
+
+    def set_bottom_left(self, other: tuple[float, float]) -> None:
+        self.set_left(other[0])
+        self.set_top(other[1] - self.get_height())
+
+    def get_left_center(self) -> tuple[float, float]:
+        return self.get_left(), self.get_top() + self.get_height() / 2
+
+    def set_left_center(self, other: tuple[float, float]) -> None:
+        self.set_left(other[0])
+        self.set_top(other[1] - self.get_height() / 2)
 
     def as_list(self) -> list[float]:
-        return [self.left, self.top, self.width, self.height]
+        return [self.get_left(), self.get_top(), self.get_width(), self.get_height()]
 
     def __add__(self, other: Rectangle) -> Rectangle:
         result = Rectangle()
-        result.left = min(self.left, other.left)
-        result.top = min(self.top, other.top)
-        result.width = max(self.right, other.right) - result.left
-        result.height = max(self.bottom, other.bottom) - result.top
+        result.set_left(min(self.get_left(), other.get_left()))
+        result.set_top(min(self.get_top(), other.get_top()))
+        result.set_width(max(self.get_right(), other.get_right()) - result.get_left())
+        result.set_height(max(self.get_bottom(), other.get_bottom()) - result.get_top())
         return result
 
     def overlaps(self, other: Rectangle) -> bool:
         return (
-            self.left < other.right
-            and other.left < self.right
-            and self.top < other.bottom
-            and other.top < self.bottom
+            self.get_left() < other.get_right()
+            and other.get_left() < self.get_right()
+            and self.get_top() < other.get_bottom()
+            and other.get_top() < self.get_bottom()
         )
 
     def __contains__(self, other: Rectangle) -> bool:
         return (
-            self.left <= other.left <= self.right
-            and self.left <= other.right <= self.right
-            and self.top <= other.top <= self.bottom
-            and self.top <= other.bottom <= self.bottom
+            self.get_left() <= other.get_left() <= self.get_right()
+            and self.get_left() <= other.get_right() <= self.get_right()
+            and self.get_top() <= other.get_top() <= self.get_bottom()
+            and self.get_top() <= other.get_bottom() <= self.get_bottom()
         )
 
     def area(self) -> float:
-        return self.width * self.height
+        return self.get_width() * self.get_height()
 
     def __repr__(self) -> str:
-        return f"Rectangle(left={self.left}, top={self.top}, width={self.width}, height={self.height})"
+        return f"Rectangle(left={self.get_left()}, top={self.get_top()}, width={self.get_width()}, height={self.get_height()})"
 
     def __eq__(self, other: object) -> bool:
         if isinstance(other, Rectangle):

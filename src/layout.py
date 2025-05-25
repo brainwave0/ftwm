@@ -21,4 +21,4 @@ class Layout(ABC):
         pass
 
     def window_at(self, x: int, y: int) -> Optional[Window]:
-        return next((i for i in self._state.windows if Rectangle(x, y, 0, 0) in i.virtual), None)
+        return next((i for i in self._state.windows if Rectangle(x, y, 0, 0) in i), None)

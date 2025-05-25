@@ -18,7 +18,7 @@ class CenterGravityLayout(Layout):
     def arrange(self) -> None:
         self._state.screen.grid = DynamicGrid()
         for window in sorted(
-            self._state.windows, key=lambda window: window.virtual.area(), reverse=True
+            self._state.windows, key=lambda window: window.area(), reverse=True
         ):
             self.place(window)
 
@@ -26,10 +26,10 @@ class CenterGravityLayout(Layout):
         """
         Places the window on the virtual desktop as close to the center as possible without overlapping other windows.
         """
-        all_window_rect = sum((w.virtual for w in self._state.windows), Rectangle())
-        all_window_rect.width += window.width * 2
-        all_window_rect.height += window.height * 2
-        all_window_rect.center = self._state.screen.geometry.center
+        all_window_rect = sum((w for w in self._state.windows), Rectangle())
+        all_window_rect.set_width(all_window_rect.get_width() + window.get_width() * 2)
+        all_window_rect.set_height(all_window_rect.get_height() + window.get_height() * 2)
+        all_window_rect.set_center(self._state.screen.geometry.get_center())
         self._state.screen.grid.make_area(all_window_rect)
         best_spot = None
         best_score = None
@@ -48,12 +48,12 @@ class CenterGravityLayout(Layout):
                     "top_left",
                 ]:
                     spot = copy(
-                        window.virtual
+                        window
                     )  # make copy of the window rectangle for testing purposes
 
                     # anchor it in the cell
-                    gravity_point = getattr(cell, gravity)
-                    setattr(spot, gravity, gravity_point)
+                    gravity_point = getattr(cell, f"get_{gravity}")()
+                    getattr(spot, f"set_{gravity}")(gravity_point)
 
                     if self._state.screen.grid.empty(spot):
                         new_score = self._get_score(spot)
@@ -62,15 +62,14 @@ class CenterGravityLayout(Layout):
                             best_spot = spot
                             best_score = new_score
         assert best_spot is not None
-        window.virtual.position = best_spot.position
-        window.position = tuple(map(int, best_spot.position))  # type: ignore[assignment]
-        self._state.screen.grid.set_area(window.virtual, window)
+        window.set_position(best_spot.get_position())
+        self._state.screen.grid.set_area(window, window)
 
     def _get_score(self, spot: Rectangle) -> float:
         horizontal_score = abs(
-            spot.center[0] - self._state.screen.geometry.center[0]
-        ) / (self._state.screen.geometry.width / 2)
-        vertical_score = abs(spot.center[1] - self._state.screen.geometry.center[1]) / (
-            self._state.screen.geometry.height / 2
+            spot.get_center()[0] - self._state.screen.geometry.get_center()[0]
+        ) / (self._state.screen.geometry.get_width() / 2)
+        vertical_score = abs(spot.get_center()[1] - self._state.screen.geometry.get_center()[1]) / (
+            self._state.screen.geometry.get_height() / 2
         )
         return 1 / (horizontal_score + vertical_score + 1)

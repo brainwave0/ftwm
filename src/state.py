@@ -28,6 +28,7 @@ if TYPE_CHECKING:
 from wlroots.wlr_types import SceneTree  # type: ignore[attr-defined]
 import numpy
 from .rectangle import Rectangle
+import logging
 
 class State:
     def __init__(
@@ -77,19 +78,30 @@ class State:
         self._prev_id += 1
         return self._prev_id
 
-    @property
-    def active_window(self) -> Optional[Window]:
+    def get_active_window(self) -> Optional[Window]:
         return self._active_window
     
-    @active_window.setter
-    def active_window(self, window: Window) -> None:
-        if self._active_window is not None:
-            self._active_window._xdg_surface.set_activated(False)
+    def set_active_window(self, window: Window) -> None:
+        logging.info("set_active_window")
+
+        if window == self.get_active_window():
+            # do not reactivate the same window
+            return
+
+        if self.get_active_window() is not None:
+            # deactivate previously active window
+            logging.info("deactivating previously active window")
+            self.get_active_window()._xdg_surface.set_activated(False)
+
+        self._active_window = window
         window._scene_node.raise_to_top()
+        logging.info("activating window")
         window._xdg_surface.set_activated(True)
         if self.keyboard:
+            logging.info("resetting keyboard focus")
             self.reset_keyboard_focus()
-        self._active_window = window
+        else:
+            logging.info("no keyboard")
 
         # move to the top of the stack in case a window is destroyed and a new active window is needed
         self.windows.remove(window)
@@ -97,15 +109,15 @@ class State:
 
     def reset_keyboard_focus(self) -> None:
         assert self.keyboard is not None
-        if self.active_window is not None:
+        if self.get_active_window() is not None:
             self.seat.keyboard_clear_focus()
             self.seat.keyboard_notify_enter(
-                self.active_window._xdg_surface.surface, self.keyboard
+                self.get_active_window()._xdg_surface.surface, self.keyboard  # type: ignore[union-attr]
             )
 
     def reset_active_window(self) -> None:
-        self.active_window = self.windows[-1]
+        self.set_active_window(self.windows[-1])
         
 
     def window_at(self, x: float, y: float) -> Optional[Window]:
-        return next((i for i in self.windows if Rectangle(x, y, 0, 0) in i.virtual), None)
+        return next((i for i in self.windows if Rectangle(x, y, 0, 0) in i), None)
