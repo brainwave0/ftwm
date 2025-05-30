@@ -17,14 +17,16 @@ from wlroots.wlr_types import (  # type: ignore[attr-defined]
 )
 from wlroots.wlr_types.input_device import ButtonState, InputDeviceType
 from pywayland.protocol.wayland import WlKeyboard, WlSeat  # type: ignore[attr-defined]
-from wlroots.wlr_types.xdg_shell import XdgSurface
+from wlroots.wlr_types.xdg_shell import XdgSurface, XdgSurfaceRole
 from wlroots.util.clock import Timespec
 from wlroots.wlr_types.cursor import WarpMode
-from wlroots.wlr_types import XCursorManager  # type: ignore[attr-defined]
+from wlroots.wlr_types import XCursorManager, SceneTree  # type: ignore[attr-defined]
 from .rectangle import Rectangle
 import numpy
 from xkbcommon import xkb  # type: ignore[import-untyped]
-import logging
+from weakref import WeakKeyDictionary
+from typing import cast, Any
+_weakkeydict: WeakKeyDictionary[Any, Any] = WeakKeyDictionary()
 
 
 def register_events(state: State) -> None:
@@ -45,6 +47,15 @@ def register_events(state: State) -> None:
 
 
 def new_xdg_surface(state: State, xdg_surface: XdgSurface) -> None:
+    if xdg_surface.role == XdgSurfaceRole.POPUP:
+        if parent_xdg_surface := XdgSurface.try_from_surface(
+            xdg_surface.popup.parent
+        ):
+            parent_scene_tree = cast(SceneTree, parent_xdg_surface.data)
+            scene_tree = Scene.xdg_surface_create(parent_scene_tree, xdg_surface)
+            xdg_surface.data = scene_tree
+        return
+    assert xdg_surface.role == XdgSurfaceRole.TOPLEVEL
     scene_tree = Scene.xdg_surface_create(state.window_group_tree, xdg_surface)
     window = Window(state, xdg_surface, scene_tree.node)
     geometry = xdg_surface.get_geometry()
@@ -56,22 +67,23 @@ def new_xdg_surface(state: State, xdg_surface: XdgSurface) -> None:
     if state.get_active_window() is None:
         state.set_active_window(window)
 
+    # Keep the node alive for as long as the Window, so that the Window is accessible at its data struct member.
+    scene_node = scene_tree.node
+    scene_node.data = window
+    _weakkeydict[window] = scene_node
+
+    xdg_surface.data = scene_tree
+
 
 def pointer_button(state: State, event: PointerButtonEvent) -> None:
-    logging.info("pointer button event")
     state.seat.pointer_notify_button(event.time_msec, event.button, event.button_state)
     if event.button_state == ButtonState.PRESSED:
-        logging.info("button pressed")
         state.paused = True
         relative_coordinates = tuple(numpy.array([state.cursor.x, state.cursor.y]) - numpy.array([state.window_group_tree.node.x, state.window_group_tree.node.y]))
         window = state.window_at(*relative_coordinates)
         if window:
-            logging.info("found window")
             state.set_active_window(window)
-        else:
-            logging.info("did not find window")
     else:
-        logging.info("button released")
         delay_resume_panning(state)
 
 

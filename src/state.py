@@ -28,7 +28,6 @@ if TYPE_CHECKING:
 from wlroots.wlr_types import SceneTree  # type: ignore[attr-defined]
 import numpy
 from .rectangle import Rectangle
-import logging
 
 class State:
     def __init__(
@@ -82,26 +81,19 @@ class State:
         return self._active_window
     
     def set_active_window(self, window: Window) -> None:
-        logging.info("set_active_window")
-
         if window == self.get_active_window():
             # do not reactivate the same window
             return
 
         if self.get_active_window() is not None:
             # deactivate previously active window
-            logging.info("deactivating previously active window")
-            self.get_active_window()._xdg_surface.set_activated(False)
+            self.get_active_window()._xdg_surface.set_activated(False)  # type: ignore[union-attr]
 
         self._active_window = window
         window._scene_node.raise_to_top()
-        logging.info("activating window")
         window._xdg_surface.set_activated(True)
         if self.keyboard:
-            logging.info("resetting keyboard focus")
             self.reset_keyboard_focus()
-        else:
-            logging.info("no keyboard")
 
         # move to the top of the stack in case a window is destroyed and a new active window is needed
         self.windows.remove(window)

@@ -33,6 +33,9 @@ class Window(Rectangle):
             return NotImplemented
         return self.id == other.id
 
+    def __hash__(self) -> int:
+        return hash(self.id)
+
     def set_position(self, other: tuple[float, float]) -> None:
         Rectangle.set_position(self, other)
         if self.get_position() != other:
