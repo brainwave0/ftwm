@@ -1,5 +1,6 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Optional
+
 if TYPE_CHECKING:
     from .state import State
 from abc import ABC, abstractmethod
@@ -21,4 +22,6 @@ class Layout(ABC):
         pass
 
     def window_at(self, x: int, y: int) -> Optional[Window]:
-        return next((i for i in self._state.windows if Rectangle(x, y, 0, 0) in i), None)
+        return next(
+            (i for i in self._state.windows if Rectangle(x, y, 0, 0) in i), None
+        )

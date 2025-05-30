@@ -1,5 +1,6 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:
     from .state import State
 from .rectangle import Rectangle
@@ -52,4 +53,3 @@ class Window(Rectangle):
     def set_size(self, other: tuple[float, float]) -> None:
         Rectangle.set_size(self, other)
         self._xdg_surface.set_size(int(other[0]), int(other[1]))
-

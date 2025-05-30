@@ -41,7 +41,9 @@ async def main() -> None:
     windows: list[Window] = []
     tasks: dict[str, asyncio.Task[None]] = {}
     with Display() as display:
-        compositor, allocator, renderer, backend, subcompositor = build_compositor(display)
+        compositor, allocator, renderer, backend, subcompositor = build_compositor(
+            display
+        )
         device_manager = DataDeviceManager(display)
         xdg_shell = XdgShell(display)
         with OutputLayout() as output_layout, Cursor(
@@ -67,7 +69,7 @@ async def main() -> None:
                 renderer,
                 output_layout,
                 display,
-                xcursor_manager
+                xcursor_manager,
             )
             socket = display.add_socket()
             register_events(state)
@@ -75,7 +77,12 @@ async def main() -> None:
             # running
             with backend:  # start the backend
                 async with asyncio.TaskGroup() as group:
-                    for function in (pan_windows_with_face, dbus.setup, dispatch_events):
+                    for function in (
+                        pan_windows_with_face,
+                        dbus.setup,
+                        dispatch_events,
+                    ):
                         tasks[function.__name__] = group.create_task(function(state))
+
 
 asyncio.run(main())

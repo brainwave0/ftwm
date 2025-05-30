@@ -8,7 +8,6 @@ if TYPE_CHECKING:
     from .screen import Screen
     import asyncio
 
-    
     from wlroots.wlr_types import (  # type: ignore[attr-defined]
         Seat,
         Scene,
@@ -29,6 +28,7 @@ from wlroots.wlr_types import SceneTree  # type: ignore[attr-defined]
 import numpy
 from .rectangle import Rectangle
 
+
 class State:
     def __init__(
         self,
@@ -47,7 +47,7 @@ class State:
         renderer: Renderer,
         output_layout: OutputLayout,
         display: Display,
-        xcursor_manager: XCursorManager
+        xcursor_manager: XCursorManager,
     ):
         self.settings = settings
         self.windows = windows
@@ -79,7 +79,7 @@ class State:
 
     def get_active_window(self) -> Optional[Window]:
         return self._active_window
-    
+
     def set_active_window(self, window: Window) -> None:
         if window == self.get_active_window():
             # do not reactivate the same window
@@ -109,7 +109,6 @@ class State:
 
     def reset_active_window(self) -> None:
         self.set_active_window(self.windows[-1])
-        
 
     def window_at(self, x: float, y: float) -> Optional[Window]:
         return next((i for i in self.windows if Rectangle(x, y, 0, 0) in i), None)

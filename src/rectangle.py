@@ -55,21 +55,30 @@ class Rectangle:
         self.set_top(other[1])
 
     def get_right_center(self) -> tuple[float, float]:
-        return self.get_left() + self.get_width(), self.get_top() + self.get_height() / 2
+        return (
+            self.get_left() + self.get_width(),
+            self.get_top() + self.get_height() / 2,
+        )
 
     def set_right_center(self, other: tuple[float, float]) -> None:
         self.set_left(other[0] - self.get_width())
         self.set_top(other[1] - self.get_height() / 2)
 
     def get_bottom_center(self) -> tuple[float, float]:
-        return self.get_left() + self.get_width() / 2, self.get_top() + self.get_height()
+        return (
+            self.get_left() + self.get_width() / 2,
+            self.get_top() + self.get_height(),
+        )
 
     def set_bottom_center(self, other: tuple[float, float]) -> None:
         self.set_left(other[0] - self.get_width() / 2)
         self.set_top(other[1] - self.get_height())
 
     def get_center(self) -> tuple[float, float]:
-        return self.get_left() + self.get_width() / 2, self.get_top() + self.get_height() / 2
+        return (
+            self.get_left() + self.get_width() / 2,
+            self.get_top() + self.get_height() / 2,
+        )
 
     def set_center(self, other: tuple[float, float]) -> None:
         self.set_left(other[0] - self.get_width() / 2)

@@ -79,4 +79,3 @@ class DynamicGrid:
         self._split(rectangle.get_right(), 0)
         self._split(rectangle.get_top(), 1)
         self._split(rectangle.get_bottom(), 1)
-        

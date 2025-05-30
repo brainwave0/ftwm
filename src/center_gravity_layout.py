@@ -1,5 +1,6 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:
     from .state import State
 from copy import copy
@@ -28,7 +29,9 @@ class CenterGravityLayout(Layout):
         """
         all_window_rect = sum((w for w in self._state.windows), Rectangle())
         all_window_rect.set_width(all_window_rect.get_width() + window.get_width() * 2)
-        all_window_rect.set_height(all_window_rect.get_height() + window.get_height() * 2)
+        all_window_rect.set_height(
+            all_window_rect.get_height() + window.get_height() * 2
+        )
         all_window_rect.set_center(self._state.screen.geometry.get_center())
         self._state.screen.grid.make_area(all_window_rect)
         best_spot = None
@@ -69,7 +72,7 @@ class CenterGravityLayout(Layout):
         horizontal_score = abs(
             spot.get_center()[0] - self._state.screen.geometry.get_center()[0]
         ) / (self._state.screen.geometry.get_width() / 2)
-        vertical_score = abs(spot.get_center()[1] - self._state.screen.geometry.get_center()[1]) / (
-            self._state.screen.geometry.get_height() / 2
-        )
+        vertical_score = abs(
+            spot.get_center()[1] - self._state.screen.geometry.get_center()[1]
+        ) / (self._state.screen.geometry.get_height() / 2)
         return 1 / (horizontal_score + vertical_score + 1)

@@ -7,8 +7,15 @@ import cv2
 import math
 from numpy import array, float64, float32
 
+
 class FaceTracker:
-    def __init__(self, detector_input_size: tuple[int, int], detection_threshold: float, model_path: str, bounding_box_size: float):
+    def __init__(
+        self,
+        detector_input_size: tuple[int, int],
+        detection_threshold: float,
+        model_path: str,
+        bounding_box_size: float,
+    ):
         self._detector_input_size = detector_input_size
         self._face_detector = cv2.FaceDetectorYN_create(  # type: ignore[attr-defined]
             model_path,
@@ -21,11 +28,9 @@ class FaceTracker:
         self._bounding_box_size = bounding_box_size
         self.tracking_succeeded = False
 
-        
     def _get_face_area(self, detection: ArrayLike) -> float:
         width, height = detection[2:4]  # type: ignore
         return width * height  # type: ignore
-
 
     # noinspection PyUnresolvedReferences
     def _get_detection_point(self, frame: ArrayLike) -> Optional[tuple[float, float]]:
@@ -34,10 +39,8 @@ class FaceTracker:
         """
         detections = self._face_detector.detect(frame)[1]
         if detections is not None:
-            closest: ArrayLike = max(
-                detections, key=lambda x: self._get_face_area(x)
-            )
-            top_left, dimensions  = closest[0:14].reshape(-1, 2)[0:2]  # type: ignore
+            closest: ArrayLike = max(detections, key=lambda x: self._get_face_area(x))
+            top_left, dimensions = closest[0:14].reshape(-1, 2)[0:2]  # type: ignore
 
             # nose tip
             result = tuple(array(closest[8:10], dtype=float64))  # type: ignore
@@ -65,10 +68,14 @@ class FaceTracker:
             frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)  # type: ignore
             frame = cv2.resize(frame, self._detector_input_size)  # type: ignore
 
-            point = self._get_tracker_point(frame) or self._get_detection_point(frame)              
+            point = self._get_tracker_point(frame) or self._get_detection_point(frame)
             if point is not None:
-                self._point = tuple(array(frame_size, dtype=float64) / array(self._detector_input_size, dtype=float64) * array(point, dtype=float64))  # scale back to actual frame size
-        return self._point 
+                self._point = tuple(
+                    array(frame_size, dtype=float64)
+                    / array(self._detector_input_size, dtype=float64)
+                    * array(point, dtype=float64)
+                )  # scale back to actual frame size
+        return self._point
 
     def _init_tracker(self, frame: ArrayLike, point: tuple[float, float]) -> None:
         box = cv2.boundingRect(array(self._bounding_box_points(point), dtype=float32))
@@ -81,5 +88,7 @@ class FaceTracker:
         width = frame.shape[1]  # type: ignore
         return self._bounding_box_size / 2 < point[0] < width - self._bounding_box_size / 2 and self._bounding_box_size / 2 < point[1] < height - self._bounding_box_size / 2  # type: ignore
 
-    def _bounding_box_points(self, point: tuple[float, float]) -> tuple[tuple[float, float]]:
+    def _bounding_box_points(
+        self, point: tuple[float, float]
+    ) -> tuple[tuple[float, float]]:
         return tuple(array(point, dtype=float32) - array(self._bounding_box_size / 2, dtype=float32)), tuple(array(point, dtype=float32) + array(self._bounding_box_size / 2, dtype=float32))  # type: ignore
