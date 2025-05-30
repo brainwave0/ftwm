@@ -1,10 +1,8 @@
-from functools import reduce
-from typing import Optional, Sequence
+from typing import Optional
 from numpy.typing import ArrayLike
 import numpy
 
 import cv2
-import math
 from numpy import array, float64, float32
 
 

@@ -15,7 +15,6 @@ from wlroots.wlr_types import (  # type: ignore[attr-defined]
     SceneTree,
 )
 from .util import get_and_set_up_camera
-import math
 
 
 def pan(state: State, delta: tuple[float, float]) -> None:

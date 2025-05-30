@@ -23,7 +23,6 @@ from wlroots.wlr_types import (  # type: ignore[attr-defined]
 from wlroots.helper import build_compositor
 from wlroots.util.log import log_init
 from pywayland import lib
-import os
 
 
 async def dispatch_events(state: State) -> None:
