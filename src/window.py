@@ -26,7 +26,6 @@ class Window(Rectangle):
 
     def kill(self) -> None:
         self._xdg_surface.send_close()
-        self._state.windows.remove(self)
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Window):

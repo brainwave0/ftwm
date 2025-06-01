@@ -108,7 +108,14 @@ class State:
             )
 
     def reset_active_window(self) -> None:
-        self.set_active_window(self.windows[-1])
+        if len(self.windows) > 0:
+            self.set_active_window(self.windows[-1])
+        else:
+            self._active_window = None
 
     def window_at(self, x: float, y: float) -> Optional[Window]:
         return next((i for i in self.windows if Rectangle(x, y, 0, 0) in i), None)
+
+    def remove(self, window: Window) -> None:
+        self.windows.remove(window)
+        self.reset_active_window()

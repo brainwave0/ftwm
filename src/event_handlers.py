@@ -66,7 +66,7 @@ def new_xdg_surface(state: State, xdg_surface: XdgSurface) -> None:
     window.set_height(geometry.height or 256)
     state.layout.place(window)
     state.windows.append(window)
-    xdg_surface.destroy_event.add(Listener(lambda listener, data: window.kill()))  # type: ignore[no-untyped-call]
+    xdg_surface.destroy_event.add(Listener(lambda listener, data: state.remove(window)))  # type: ignore[no-untyped-call]
     if state.get_active_window() is None:
         state.set_active_window(window)
 
