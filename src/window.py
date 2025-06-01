@@ -42,11 +42,11 @@ class Window(Rectangle):
 
     def set_width(self, other: float) -> None:
         Rectangle.set_width(self, other)
-        self._xdg_surface.set_size(int(max(1, other)), int(self.get_height()))
+        self._xdg_surface.set_size(max(1, int(other)), self.get_height())
 
     def set_height(self, other: float) -> None:
         Rectangle.set_height(self, other)
-        self._xdg_surface.set_size(int(max(1, other)), int(self.get_height()))
+        self._xdg_surface.set_size(self.get_width(), max(1, int(other)))
 
     def set_size(self, other: tuple[float, float]) -> None:
         Rectangle.set_size(self, other)
