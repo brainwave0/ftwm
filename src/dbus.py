@@ -35,9 +35,9 @@ class Interface(ServiceInterface):
         elif window is None:
             raise no_window_error
         else:
-            current_value = getattr(window, dimension)
+            current_value = getattr(window, f"get_{dimension}")()
             new_value = increment((window.id, dimension), current_value, direction)
-            setattr(window, dimension, int(new_value))
+            getattr(window, f"set_{dimension}")(int(new_value))
 
     @method()
     async def Kill(self):  # type: ignore[no-untyped-def]
