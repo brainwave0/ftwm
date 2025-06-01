@@ -2,7 +2,7 @@
 function print_help {
   echo 'Usage: ftwmcmd <command> <dimension> <direction>'
   echo
-  echo '<command> ::= "increment" | "arrange"'
+  echo '<command> ::= "increment" | "arrange" | "kill"'
   echo '<dimension> ::= "width" | "height"'
   echo '<direction> ::= "-1" | "1"'
 }
