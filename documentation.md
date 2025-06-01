@@ -1,3 +1,7 @@
+# PANNING
+
+The desktop pans according to the detected face position.
+
 # CLICK TO FOCUS
 
 Clicking a window gives it keyboard focus. Aside from global shortcut keys, all keystrokes will be sent to the focused window.
@@ -17,7 +21,7 @@ The `Increment` action is for increasing or decreasing the size of the focused w
 
 ## Arrange
 
-Re-arranges the windows according to the rules of the layout. Windows are placed in order from largest to smallest.
+Re-arranges the windows according to the rules of the layout.
 
 ## Kill
 
@@ -29,23 +33,23 @@ New windows are placed as close to the center of the screen as possible without 
 
 # FACE TRACKING
 
-Panning of the screen is based on the location of the face in the video feed. If there are multiple faces, the one nearest to the screen is tracked. It is assumed that the nearest face is the largest one in the camera frame. Works better with good lighting, but okay in low light.
+Panning of the screen is based on the location of the face in the video feed. If there are multiple faces, the one nearest to the screen is tracked. It is assumed that the nearest face is the largest one in the camera frame. For most webcams, it works better with good lighting, but okay in low light.
 
 # EVENTS
 
-A subset of X events are currently handled.
+A subset of events are currently handled.
 
-## Map Request
+## New XDG Surface
 
 When a new window is created, it is placed on the screen according to the layout.
 
 ## Destroy Notify
 
-The window is simply removed from the list.
+The window is closed and removed from the list.
 
-## Button Press
+## Pointer Button
 
-Handles click-to-focus.
+Clicks are passed to the window under the cursor.
 
 # COMMAND LINE INTERFACE
 
