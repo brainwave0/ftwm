@@ -11,9 +11,14 @@ class IncrementState:
 states: Dict[Hashable, IncrementState] = {}
 
 
-def increment(key: Hashable, number: float, direction: int) -> float:
+def increment(key: Hashable, number: float, direction: int, lower_bound: float, upper_bound: float) -> float:
     assert direction in (-1, 1)
     state = states.get(key, IncrementState())
+
+    if number >= upper_bound and direction == 1:
+        return upper_bound
+    if number <= lower_bound and direction == -1:
+        return lower_bound
 
     # keep track of how many times it has been incremented in the same direction
     if state.prev_dir == direction:
@@ -29,4 +34,4 @@ def increment(key: Hashable, number: float, direction: int) -> float:
         state.delta *= 0.5 + min(2, state.count) * 0.75
     state.prev_dir = direction
     states[key] = state
-    return number + state.delta * direction
+    return min(upper_bound, max(lower_bound, number + state.delta * direction))

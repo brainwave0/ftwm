@@ -36,7 +36,8 @@ class Interface(ServiceInterface):
             raise no_window_error
         else:
             current_value = getattr(window, f"get_{dimension}")()
-            new_value = increment((window.id, dimension), current_value, direction)
+            max_size = self._state.settings.getint("DEFAULT", "max_size")
+            new_value = increment((window.id, dimension), current_value, direction, 1, max_size)
             getattr(window, f"set_{dimension}")(int(new_value))
 
     @method()
