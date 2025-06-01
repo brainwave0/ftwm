@@ -43,7 +43,7 @@ A subset of events are currently handled.
 
 When a new window is created, it is placed on the screen according to the layout.
 
-## Destroy Notify
+## Destroy
 
 The window is closed and removed from the list.
 
