@@ -2,7 +2,7 @@
 function print_help {
   echo 'Usage: ftwmcmd <command> <dimension> <direction>'
   echo
-  echo '<command> ::= "increment" | "arrange" | "kill"'
+  echo '<command> ::= "increment" | "arrange" | "kill" | "exit"'
   echo '<dimension> ::= "width" | "height"'
   echo '<direction> ::= "-1" | "1"'
 }
@@ -15,6 +15,8 @@ elif [[ $# == 1 && $1 == "arrange" ]]; then
   call_method Arrange
 elif [[ $# == 1 && $1 == "kill" ]]; then
     call_method Kill
+elif [[ $# == 1 && $1 == "exit" ]]; then
+    call_method Exit
 else
   print_help
 fi
