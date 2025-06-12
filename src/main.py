@@ -23,6 +23,8 @@ from wlroots.wlr_types import (  # type: ignore[attr-defined]
 from wlroots.helper import build_compositor
 from wlroots.util.log import log_init
 from pywayland import lib
+import subprocess
+import os
 
 
 async def dispatch_events(state: State) -> None:
@@ -82,6 +84,12 @@ async def main() -> None:
                         dispatch_events,
                     ):
                         tasks[function.__name__] = group.create_task(function(state))
-
+                    startup_command = state.settings.get("DEFAULT", "startup_command")
+                    if startup_command is not None:
+                        os.environ["FTWMPID"] = str(os.getpid())
+                        os.environ["WAYLAND_DISPLAY"] = socket.decode()
+                        with open("/home/ian/startup.log") as file:
+                            subprocess.Popen(startup_command, shell=True, stdout=file)
+                       
 
 asyncio.run(main())
