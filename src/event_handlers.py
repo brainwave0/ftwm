@@ -171,6 +171,8 @@ def set_cursor(state: State, event) -> None:  # type: ignore[no-untyped-def]
 
 
 def process_cursor_motion(state: State, time) -> None:  # type: ignore[no-untyped-def]
+    state.paused = True
+    delay_resume_panning(state)
     view, surface, sx, sy = view_at(state, state.cursor.x, state.cursor.y)
     if view is None:
         state.cursor.set_xcursor(state.xcursor_manager, "default")
