@@ -4,6 +4,7 @@ from dbus_next.service import ServiceInterface, method
 
 from src.increment import increment
 from .state import State
+import sys
 
 no_window_error = DBusError(  # type: ignore[no-untyped-call]
     "com.github.brainwave0.ftwm.error.NoWindow", "There is no active window."
@@ -47,6 +48,10 @@ class Interface(ServiceInterface):
             raise no_window_error
         else:
             window.kill()
+
+    @method()
+    async def Exit(self):
+        sys.exit()
 
 
 async def setup(state: State) -> None:
